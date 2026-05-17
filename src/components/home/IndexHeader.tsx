@@ -220,22 +220,28 @@ export default function IndexHeader({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 flex items-center gap-1">
-        {navItems.map((item) => (
-          <button
-            key={item}
-            onClick={() => { setActiveNav(item); setSearchValue(""); setActiveCategory(null); }}
-            className={`relative text-sm font-medium px-3 py-3 transition-colors ${
-              activeNav === item ? "text-[#1A1A1A]" : "text-[#9A9690] hover:text-[#4A4A48]"
-            }`}
-          >
-            {item}
-            {activeNav === item && (
-              <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#1A1A1A] rounded-t-full" />
-            )}
-          </button>
-        ))}
-      </div>
+      <nav className="max-w-7xl mx-auto px-6 flex items-center gap-1 overflow-x-auto scrollbar-hide">
+        {navItems.map((item) => {
+          const isActive = activeNav === item;
+          const iconName =
+            item === "Главная" ? "Home" : item === "Категории" ? "LayoutGrid" : "Newspaper";
+          return (
+            <button
+              key={item}
+              onClick={() => { setActiveNav(item); setSearchValue(""); }}
+              className={`relative flex items-center gap-1.5 text-sm font-medium px-3 py-3 transition-colors whitespace-nowrap ${
+                isActive ? "text-[#1A1A1A]" : "text-[#9A9690] hover:text-[#4A4A48]"
+              }`}
+            >
+              <Icon name={iconName} size={14} className={isActive ? "text-[#1A1A1A]" : "text-[#B8B4AC]"} />
+              {item}
+              {isActive && (
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#1A1A1A] rounded-t-full" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
     </header>
   );
 }
