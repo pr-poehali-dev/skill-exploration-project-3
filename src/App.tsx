@@ -10,6 +10,9 @@ import NewArticlePage from "./pages/NewArticlePage";
 import EditArticlePage from "./pages/EditArticlePage";
 import ProfilePage from "./pages/ProfilePage";
 import BookmarksPage from "./pages/BookmarksPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import RequireAuth from "./components/RequireAuth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,10 +26,40 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/article/:id" element={<ArticlePage />} />
-          <Route path="/new" element={<NewArticlePage />} />
-          <Route path="/article/:id/edit" element={<EditArticlePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/new"
+            element={
+              <RequireAuth roles={["editor", "moderator", "admin"]}>
+                <NewArticlePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/article/:id/edit"
+            element={
+              <RequireAuth>
+                <EditArticlePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/bookmarks"
+            element={
+              <RequireAuth>
+                <BookmarksPage />
+              </RequireAuth>
+            }
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -2,20 +2,22 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useArticles, deleteArticle } from "@/store/articlesStore";
+import { useAuth, updateCurrentUser, ROLE_LABELS } from "@/store/authStore";
 
 const TABS = ["Мои статьи", "Настройки"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const user = useAuth();
   const [tab, setTab] = useState("Мои статьи");
-  const [name, setName] = useState(() => localStorage.getItem("profile_name") || "");
-  const [role, setRole] = useState(() => localStorage.getItem("profile_role") || "");
+  const [name, setName] = useState(user?.name || "");
+  const [role] = useState(user ? ROLE_LABELS[user.role] : "");
   const [saved, setSaved] = useState(false);
   const articles = useArticles();
+  const myArticles = articles.filter((a) => a.authorId === user?.id);
 
   const saveProfile = () => {
-    localStorage.setItem("profile_name", name);
-    localStorage.setItem("profile_role", role);
+    updateCurrentUser({ name });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -46,9 +48,12 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="font-cormorant text-2xl font-semibold text-[#1A1A1A]">
-              {name || "Аноним"}
+              {user?.name || "Аноним"}
             </p>
-            <p className="text-sm text-[#9A9690]">{role || "Читатель"}</p>
+            <p className="text-xs text-[#9A9690]">{user?.email}</p>
+            <span className="inline-block mt-1.5 text-[10px] font-medium uppercase tracking-widest text-[#7A7670] bg-[#F5F3EF] px-2 py-0.5 rounded-full">
+              {role}
+            </span>
           </div>
         </div>
 
@@ -74,25 +79,31 @@ export default function ProfilePage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <p className="text-sm text-[#9A9690]">
-                {articles.length} {articles.length === 1 ? "статья" : "статей"}
+                {myArticles.length} {myArticles.length === 1 ? "статья" : "статей"}
               </p>
-              <button
-                onClick={() => navigate("/new")}
-                className="flex items-center gap-2 bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors"
-              >
-                <Icon name="Plus" size={14} />
-                Написать
-              </button>
+              {user && (user.role === "editor" || user.role === "moderator" || user.role === "admin") && (
+                <button
+                  onClick={() => navigate("/new")}
+                  className="flex items-center gap-2 bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors"
+                >
+                  <Icon name="Plus" size={14} />
+                  Написать
+                </button>
+              )}
             </div>
-            {articles.length === 0 ? (
+            {myArticles.length === 0 ? (
               <div className="text-center py-20 text-[#9A9690]">
                 <Icon name="FileText" size={32} className="mx-auto mb-3 opacity-30" />
                 <p className="font-cormorant text-xl text-[#4A4A48] mb-1">Пока нет статей</p>
-                <p className="text-sm">Напишите первую — это займёт пару минут</p>
+                <p className="text-sm">
+                  {user && (user.role === "editor" || user.role === "moderator" || user.role === "admin")
+                    ? "Напишите первую — это займёт пару минут"
+                    : "Только редакторы могут публиковать статьи"}
+                </p>
               </div>
             ) : (
               <div className="space-y-1">
-                {articles.map((a) => (
+                {myArticles.map((a) => (
                   <div
                     key={a.id}
                     className="flex items-center gap-4 p-4 rounded-xl hover:bg-white transition-colors group"
@@ -133,14 +144,20 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-2">
-                Должность / роль
+                E-mail
               </label>
               <input
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="Редактор, журналист..."
-                className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC]"
+                value={user?.email || ""}
+                disabled
+                className="w-full text-sm text-[#9A9690] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none cursor-not-allowed"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-2">
+                Роль
+              </label>
+              <p className="text-sm text-[#4A4A48] pb-2 border-b border-[#E8E4DC]">{role}</p>
+              <p className="text-xs text-[#B8B4AC] mt-1">Роль назначает администратор</p>
             </div>
             <button
               onClick={saveProfile}

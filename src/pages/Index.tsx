@@ -3,14 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { CATEGORIES, type Article } from "@/data/articles";
 import { useArticles } from "@/store/articlesStore";
+import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/store/authStore";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
-
-const PROFILE_MENU = [
-  { label: "Мой профиль", icon: "User", path: "/profile" },
-  { label: "Закладки", icon: "Bookmark", path: "/bookmarks" },
-  { label: "Написать статью", icon: "PenLine", path: "/new" },
-];
 
 export default function Index() {
   const [activeNav, setActiveNav] = useState("Главная");
@@ -19,6 +14,7 @@ export default function Index() {
   const [searchFocused, setSearchFocused] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const user = useAuth();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -86,41 +82,76 @@ export default function Index() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <button className="bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors whitespace-nowrap hidden sm:block">
-              Подписаться
-            </button>
+            {user ? (
+              canCreateArticle(user) && (
+                <button
+                  onClick={() => navigate("/new")}
+                  className="bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors whitespace-nowrap hidden sm:flex items-center gap-1.5"
+                >
+                  <Icon name="PenLine" size={13} />
+                  Написать
+                </button>
+              )
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors whitespace-nowrap hidden sm:block"
+              >
+                Войти
+              </button>
+            )}
 
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((v) => !v)}
-                className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
+                className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden ${
                   profileOpen ? "border-[#1A1A1A] bg-[#1A1A1A]" : "border-[#E8E4DC] bg-white hover:border-[#C8C4BC]"
                 }`}
               >
-                <Icon name="User" size={16} className={profileOpen ? "text-white" : "text-[#6A6660]"} />
+                {user ? (
+                  <span className={`font-cormorant font-semibold text-sm ${profileOpen ? "text-white" : "text-[#4A4A48]"}`}>
+                    {user.name[0].toUpperCase()}
+                  </span>
+                ) : (
+                  <Icon name="User" size={16} className={profileOpen ? "text-white" : "text-[#6A6660]"} />
+                )}
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-12 w-52 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
-                  {PROFILE_MENU.map((item) => (
-                    <button
-                      key={item.label}
-                      onClick={() => { setProfileOpen(false); navigate(item.path); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-[#1A1A1A] transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
-                    >
-                      <Icon name={item.icon} size={14} className="text-[#9A9690]" />
-                      {item.label}
-                    </button>
-                  ))}
-                  <div className="border-t border-[#F0EDE8] mt-1">
-                    <button
-                      onClick={() => setProfileOpen(false)}
-                      className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-500 transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
-                    >
-                      <Icon name="LogOut" size={14} />
-                      Выйти
-                    </button>
-                  </div>
+                <div className="absolute right-0 top-12 w-60 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
+                  {user ? (
+                    <>
+                      <div className="px-4 py-3 border-b border-[#F0EDE8]">
+                        <p className="text-sm font-medium text-[#1A1A1A] truncate">{user.name}</p>
+                        <p className="text-xs text-[#9A9690] truncate">{user.email}</p>
+                        <span className="inline-block mt-1.5 text-[10px] font-medium uppercase tracking-widest text-[#7A7670] bg-[#F5F3EF] px-2 py-0.5 rounded-full">
+                          {ROLE_LABELS[user.role]}
+                        </span>
+                      </div>
+                      <MenuItem icon="User" label="Мой профиль" onClick={() => { setProfileOpen(false); navigate("/profile"); }} />
+                      <MenuItem icon="Bookmark" label="Закладки" onClick={() => { setProfileOpen(false); navigate("/bookmarks"); }} />
+                      {canCreateArticle(user) && (
+                        <MenuItem icon="PenLine" label="Написать статью" onClick={() => { setProfileOpen(false); navigate("/new"); }} />
+                      )}
+                      {isAdmin(user) && (
+                        <MenuItem icon="Shield" label="Админ-панель" onClick={() => { setProfileOpen(false); navigate("/admin"); }} />
+                      )}
+                      <div className="border-t border-[#F0EDE8] mt-1">
+                        <button
+                          onClick={() => { setProfileOpen(false); logoutUser(); navigate("/"); }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-500 transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
+                        >
+                          <Icon name="LogOut" size={14} />
+                          Выйти
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <MenuItem icon="LogIn" label="Войти" onClick={() => { setProfileOpen(false); navigate("/login"); }} />
+                      <MenuItem icon="UserPlus" label="Зарегистрироваться" onClick={() => { setProfileOpen(false); navigate("/register"); }} />
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -249,6 +280,18 @@ export default function Index() {
         )}
       </main>
     </div>
+  );
+}
+
+function MenuItem({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-4 py-2.5 text-sm text-[#1A1A1A] transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
+    >
+      <Icon name={icon} size={14} className="text-[#9A9690]" />
+      {label}
+    </button>
   );
 }
 

@@ -54,6 +54,10 @@ export function addArticle(article: Omit<Article, "id" | "date" | "featured">): 
   return newArticle;
 }
 
+export function getArticleById(id: number): Article | undefined {
+  return _articles.find((a) => a.id === id);
+}
+
 export function updateArticle(id: number, patch: Partial<Article>) {
   _articles = _articles.map((a) => (a.id === id ? { ...a, ...patch } : a));
   saveArticles(_articles);

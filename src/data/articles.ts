@@ -20,6 +20,7 @@ export interface Article {
   featured: boolean;
   author: string;
   authorRole: string;
+  authorId?: number;
   content: string;
   editorData?: EditorData;
 }

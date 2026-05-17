@@ -5,6 +5,7 @@ import ArticleEditor, { type ArticleEditorHandle } from "@/components/ArticleEdi
 import { CATEGORIES, type Article, type EditorData } from "@/data/articles";
 import { addArticle, updateArticle } from "@/store/articlesStore";
 import { editorToPlainText, estimateReadTimeFromEditor, markdownToEditor } from "@/lib/editorConvert";
+import { useAuth, ROLE_LABELS } from "@/store/authStore";
 
 interface Props {
   mode: "create" | "edit";
@@ -14,12 +15,16 @@ interface Props {
 export default function ArticleForm({ mode, article }: Props) {
   const navigate = useNavigate();
   const editorRef = useRef<ArticleEditorHandle>(null);
+  const currentUser = useAuth();
+
+  const defaultAuthor = article?.author ?? currentUser?.name ?? "";
+  const defaultRole = article?.authorRole ?? (currentUser ? ROLE_LABELS[currentUser.role] : "Автор");
 
   const [title, setTitle] = useState(article?.title ?? "");
   const [category, setCategory] = useState(article?.category ?? CATEGORIES[0].name);
   const [excerpt, setExcerpt] = useState(article?.excerpt ?? "");
-  const [author, setAuthor] = useState(article?.author ?? (localStorage.getItem("profile_name") || ""));
-  const [authorRole, setAuthorRole] = useState(article?.authorRole ?? (localStorage.getItem("profile_role") || ""));
+  const [author, setAuthor] = useState(defaultAuthor);
+  const [authorRole, setAuthorRole] = useState(defaultRole);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -54,6 +59,7 @@ export default function ArticleForm({ mode, article }: Props) {
           excerpt: excerpt.trim(),
           author: author.trim(),
           authorRole: authorRole.trim() || "Автор",
+          authorId: currentUser?.id,
           content: plain,
           readTime,
           editorData: data,

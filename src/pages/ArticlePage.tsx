@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useArticles, useBookmarks } from "@/store/articlesStore";
+import { useArticles, useBookmarks, deleteArticle } from "@/store/articlesStore";
+import { useAuth, canEditArticle, canDeleteArticle } from "@/store/authStore";
 import type { EditorData } from "@/data/articles";
 import Icon from "@/components/ui/icon";
 
@@ -148,8 +149,11 @@ export default function ArticlePage() {
   const navigate = useNavigate();
   const articles = useArticles();
   const { bookmarks, toggle } = useBookmarks();
+  const user = useAuth();
   const article = articles.find((a) => a.id === Number(id));
   const isBookmarked = article ? bookmarks.includes(article.id) : false;
+  const canEdit = canEditArticle(user, article?.authorId);
+  const canDelete = canDeleteArticle(user, article?.authorId);
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -218,14 +222,30 @@ export default function ArticlePage() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(`/article/${article.id}/edit`)}
-              className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
-              title="Редактировать"
-            >
-              <Icon name="PenLine" size={15} />
-              <span className="hidden sm:inline">Редактировать</span>
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => navigate(`/article/${article.id}/edit`)}
+                className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
+                title="Редактировать"
+              >
+                <Icon name="PenLine" size={15} />
+                <span className="hidden sm:inline">Редактировать</span>
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => {
+                  if (confirm("Удалить статью? Это действие нельзя отменить.")) {
+                    deleteArticle(article.id);
+                    navigate("/");
+                  }
+                }}
+                className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-red-500 transition-colors"
+                title="Удалить"
+              >
+                <Icon name="Trash2" size={15} />
+              </button>
+            )}
             <button
               onClick={() => toggle(article.id)}
               className={`flex items-center gap-1.5 text-sm transition-colors ${isBookmarked ? "text-[#1A1A1A]" : "text-[#6A6660] hover:text-[#1A1A1A]"}`}
