@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import type { Article } from "@/data/articles";
@@ -19,27 +20,49 @@ export default function ArticleBody({ article, related }: Props) {
 
   const hasCover = Boolean(article.cover);
 
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const fadeRange = 480;
+  const coverOpacity = Math.max(0, 1 - scrollY / fadeRange);
+  const coverTranslate = Math.min(scrollY * 0.35, 160);
+  const coverScale = 1 + Math.min(scrollY, fadeRange) / 4000;
+
   return (
     <main>
       {/* Hero with cover as background */}
       <section className="relative overflow-hidden -mt-14">
-        {hasCover ? (
-          <>
+        <div
+          className="absolute inset-0 will-change-transform"
+          style={{
+            opacity: coverOpacity,
+            transform: `translate3d(0, ${coverTranslate}px, 0) scale(${coverScale})`,
+            transition: "opacity 120ms linear",
+          }}
+        >
+          {hasCover ? (
             <img
               src={article.cover}
               alt={article.title}
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-[#FAFAF8]" />
-          </>
-        ) : (
-          <>
+          ) : (
             <div className="absolute inset-0">
               <CardPlaceholder seed={article.id} />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-[#FAFAF8]" />
-          </>
-        )}
+          )}
+          <div
+            className={`absolute inset-0 ${
+              hasCover
+                ? "bg-gradient-to-b from-black/30 via-black/55 to-[#FAFAF8]"
+                : "bg-gradient-to-b from-black/10 via-black/30 to-[#FAFAF8]"
+            }`}
+          />
+        </div>
 
         <div className="relative max-w-2xl mx-auto px-6 pt-32 sm:pt-40 pb-16 animate-fade-in">
           <span className="inline-block text-xs font-medium text-white uppercase tracking-widest mb-5 border border-white/40 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
