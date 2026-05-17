@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage";
 import BookmarksPage from "./pages/BookmarksPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import AdminPage from "./pages/AdminPage";
 import RequireAuth from "./components/RequireAuth";
 import NotFound from "./pages/NotFound";
 
@@ -57,6 +58,14 @@ const App = () => (
             element={
               <RequireAuth>
                 <BookmarksPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth roles={["admin"]}>
+                <AdminPage />
               </RequireAuth>
             }
           />

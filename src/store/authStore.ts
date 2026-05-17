@@ -129,7 +129,27 @@ export function updateUserRole(userId: number, role: Role) {
   if (_current?.id === userId) {
     _current = { ..._current, role };
     saveSession(_current);
+  } else {
+    window.dispatchEvent(new Event("auth-changed"));
   }
+}
+
+export function deleteUser(userId: number): { ok: boolean; error?: string } {
+  if (_current?.id === userId) return { ok: false, error: "Нельзя удалить самого себя" };
+  _users = _users.filter((u) => u.id !== userId);
+  saveUsers(_users);
+  window.dispatchEvent(new Event("auth-changed"));
+  return { ok: true };
+}
+
+export function useUsers() {
+  const [users, setUsers] = useState<User[]>(() => listUsers());
+  useEffect(() => {
+    const handler = () => setUsers(listUsers());
+    window.addEventListener("auth-changed", handler);
+    return () => window.removeEventListener("auth-changed", handler);
+  }, []);
+  return users;
 }
 
 export function updateCurrentUser(patch: Partial<Pick<User, "name" | "avatar">>) {
