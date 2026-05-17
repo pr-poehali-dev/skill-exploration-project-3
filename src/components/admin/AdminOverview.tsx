@@ -15,9 +15,10 @@ interface Props {
   onGoArticles: () => void;
   onGoSeo: () => void;
   onGoCategories?: () => void;
+  onGoRoles?: () => void;
 }
 
-export default function AdminOverview({ stats, onGoUsers, onGoArticles, onGoSeo, onGoCategories }: Props) {
+export default function AdminOverview({ stats, onGoUsers, onGoArticles, onGoSeo, onGoCategories, onGoRoles }: Props) {
   return (
     <div className="animate-fade-in">
       <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A] mb-8">Обзор</h2>
@@ -50,6 +51,14 @@ export default function AdminOverview({ stats, onGoUsers, onGoArticles, onGoSeo,
             description="Создание, редактирование и настройка"
             icon="Folder"
             onClick={onGoCategories}
+          />
+        )}
+        {onGoRoles && (
+          <ShortcutCard
+            title="Роли"
+            description="Названия, цвета и описания ролей"
+            icon="ShieldCheck"
+            onClick={onGoRoles}
           />
         )}
         <ShortcutCard

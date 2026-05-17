@@ -153,6 +153,33 @@ export function deleteUser(userId: number): { ok: boolean; error?: string } {
   return { ok: true };
 }
 
+export function createUser(input: {
+  email: string;
+  password: string;
+  name: string;
+  role: Role;
+}): { ok: true; user: User } | { ok: false; error: string } {
+  const email = input.email.trim().toLowerCase();
+  if (!email || !email.includes("@")) return { ok: false, error: "Введите корректный e-mail" };
+  if (input.password.length < 6) return { ok: false, error: "Пароль должен быть не короче 6 символов" };
+  if (!input.name.trim()) return { ok: false, error: "Введите имя" };
+  if (_users.some((u) => u.email === email)) return { ok: false, error: "Этот e-mail уже зарегистрирован" };
+
+  const newUser: UserRecord = {
+    id: Date.now(),
+    email,
+    name: input.name.trim(),
+    role: input.role,
+    createdAt: Date.now(),
+    passwordHash: hash(input.password),
+  };
+  _users = [..._users, newUser];
+  saveUsers(_users);
+  window.dispatchEvent(new Event("auth-changed"));
+  const { passwordHash: _ph, ...publicUser } = newUser;
+  return { ok: true, user: publicUser };
+}
+
 export function useUsers() {
   const [users, setUsers] = useState<User[]>(() => listUsers());
   useEffect(() => {

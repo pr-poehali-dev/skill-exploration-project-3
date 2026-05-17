@@ -10,10 +10,12 @@ import AdminArticles from "@/components/admin/AdminArticles";
 import AdminCategories from "@/components/admin/AdminCategories";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminTheme from "@/components/admin/AdminTheme";
+import AdminRoles from "@/components/admin/AdminRoles";
 
 const TABS = [
   { key: "overview", label: "Обзор", icon: "LayoutDashboard" },
   { key: "users", label: "Пользователи", icon: "Users" },
+  { key: "roles", label: "Роли", icon: "ShieldCheck" },
   { key: "articles", label: "Статьи", icon: "FileText" },
   { key: "categories", label: "Категории", icon: "Folder" },
   { key: "theme", label: "Тема", icon: "Palette" },
@@ -25,7 +27,7 @@ export default function AdminPage() {
   const user = useAuth();
   const users = useUsers();
   const articles = useArticles();
-  const [tab, setTab] = useState<"users" | "articles" | "overview" | "seo" | "categories" | "theme">("overview");
+  const [tab, setTab] = useState<"users" | "articles" | "overview" | "seo" | "categories" | "theme" | "roles">("overview");
   const site = useSiteSettings();
   const [siteSaved, setSiteSaved] = useState(false);
   const [search, setSearch] = useState("");
@@ -95,6 +97,7 @@ export default function AdminPage() {
             onGoArticles={() => setTab("articles")}
             onGoSeo={() => setTab("seo")}
             onGoCategories={() => setTab("categories")}
+            onGoRoles={() => setTab("roles")}
           />
         )}
 
@@ -111,6 +114,8 @@ export default function AdminPage() {
         {tab === "articles" && <AdminArticles articles={articles} />}
 
         {tab === "categories" && <AdminCategories />}
+
+        {tab === "roles" && <AdminRoles />}
 
         {tab === "theme" && <AdminTheme />}
 
