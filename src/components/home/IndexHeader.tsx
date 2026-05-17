@@ -48,17 +48,8 @@ export default function IndexHeader({
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
-        <a href="#" className="flex items-center gap-2 shrink-0 group">
-          <div className="w-8 h-8 bg-[#1A1A1A] rounded-sm flex items-center justify-center transition-transform group-hover:scale-105">
-            <span className="text-white font-cormorant font-semibold text-lg leading-none select-none">М</span>
-          </div>
-          <span className="font-cormorant font-semibold text-xl text-[#1A1A1A] hidden sm:block tracking-tight">
-            Медиум
-          </span>
-        </a>
-
+    <header className="sticky top-0 z-40 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4 pl-16 lg:pl-6">
         <div className="flex-1 flex justify-center mx-2 relative">
           <div className="w-full max-w-[512px]">
           <div

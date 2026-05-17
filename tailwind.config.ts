@@ -82,6 +82,10 @@ export default {
 					from: { opacity: '0', transform: 'translateY(-6px)' },
 					to: { opacity: '1', transform: 'translateY(0)' },
 				},
+				'slide-in-left': {
+					from: { transform: 'translateX(-100%)' },
+					to: { transform: 'translateX(0)' },
+				},
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -104,6 +108,7 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out both',
 				'slide-down': 'slide-down 0.2s ease-out both',
+				'slide-in-left': 'slide-in-left 0.2s ease-out both',
 			}
 		}
 	},
