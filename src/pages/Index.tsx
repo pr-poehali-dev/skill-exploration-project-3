@@ -1,65 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import { ARTICLES, CATEGORIES, type Article } from "@/data/articles";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
-
-const CATEGORIES = [
-  { name: "Дизайн", count: 24, color: "#EDE9E2" },
-  { name: "Технологии", count: 41, color: "#E2EDE8" },
-  { name: "Культура", count: 18, color: "#EAE2ED" },
-  { name: "Наука", count: 33, color: "#EDE8E2" },
-  { name: "Бизнес", count: 29, color: "#E2E8ED" },
-  { name: "Философия", count: 12, color: "#E8EDE2" },
-];
-
-const ARTICLES = [
-  {
-    id: 1,
-    category: "Дизайн",
-    title: "Пустое пространство как главный элемент современного интерфейса",
-    excerpt: "Почему лучшие дизайнеры мира намеренно убирают детали и что за этим стоит.",
-    date: "14 мая 2026",
-    readTime: "6 мин",
-    featured: true,
-  },
-  {
-    id: 2,
-    category: "Технологии",
-    title: "Как работает память компьютера на самом деле",
-    excerpt: "Простое объяснение сложной темы без лишних терминов.",
-    date: "12 мая 2026",
-    readTime: "4 мин",
-    featured: false,
-  },
-  {
-    id: 3,
-    category: "Культура",
-    title: "Японский принцип ма: искусство паузы",
-    excerpt: "Концепция, которая изменила архитектуру, музыку и кино двадцатого века.",
-    date: "10 мая 2026",
-    readTime: "8 мин",
-    featured: false,
-  },
-  {
-    id: 4,
-    category: "Наука",
-    title: "Почему мы помним некоторые сны, но забываем большинство",
-    excerpt: "Нейробиология сновидений в понятных словах.",
-    date: "8 мая 2026",
-    readTime: "5 мин",
-    featured: false,
-  },
-  {
-    id: 5,
-    category: "Бизнес",
-    title: "Медленные решения приносят быстрые результаты",
-    excerpt: "Контринтуитивный подход к управлению, который доказал свою эффективность.",
-    date: "5 мая 2026",
-    readTime: "7 мин",
-    featured: false,
-  },
-];
-
 const PROFILE_MENU = ["Мой профиль", "Закладки", "Настройки", "Выйти"];
 
 export default function Index() {
@@ -68,6 +12,7 @@ export default function Index() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -91,12 +36,13 @@ export default function Index() {
         )
       : null;
 
+  const goArticle = (id: number) => navigate(`/article/${id}`);
+
   return (
     <div className="min-h-screen bg-[#FAFAF8] font-golos">
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
-          {/* Logo */}
           <a href="#" className="flex items-center gap-2 shrink-0 group">
             <div className="w-8 h-8 bg-[#1A1A1A] rounded-sm flex items-center justify-center transition-transform group-hover:scale-105">
               <span className="text-white font-cormorant font-semibold text-lg leading-none select-none">М</span>
@@ -106,7 +52,6 @@ export default function Index() {
             </span>
           </a>
 
-          {/* Search — grows to fill space */}
           <div className="flex-1 mx-2 relative">
             <div
               className={`flex items-center gap-2 bg-white border rounded-full px-4 py-2 transition-all duration-200 ${
@@ -126,17 +71,13 @@ export default function Index() {
                 className="flex-1 bg-transparent text-sm text-[#1A1A1A] placeholder:text-[#B8B4AC] outline-none min-w-0"
               />
               {searchValue && (
-                <button
-                  onClick={() => setSearchValue("")}
-                  className="text-[#9A9690] hover:text-[#1A1A1A] transition-colors"
-                >
+                <button onClick={() => setSearchValue("")} className="text-[#9A9690] hover:text-[#1A1A1A] transition-colors">
                   <Icon name="X" size={13} />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Right: Subscribe + Profile */}
           <div className="flex items-center gap-3 shrink-0">
             <button className="bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors whitespace-nowrap hidden sm:block">
               Подписаться
@@ -146,16 +87,10 @@ export default function Index() {
               <button
                 onClick={() => setProfileOpen((v) => !v)}
                 className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
-                  profileOpen
-                    ? "border-[#1A1A1A] bg-[#1A1A1A]"
-                    : "border-[#E8E4DC] bg-white hover:border-[#C8C4BC]"
+                  profileOpen ? "border-[#1A1A1A] bg-[#1A1A1A]" : "border-[#E8E4DC] bg-white hover:border-[#C8C4BC]"
                 }`}
               >
-                <Icon
-                  name="User"
-                  size={16}
-                  className={profileOpen ? "text-white" : "text-[#6A6660]"}
-                />
+                <Icon name="User" size={16} className={profileOpen ? "text-white" : "text-[#6A6660]"} />
               </button>
 
               {profileOpen && (
@@ -178,7 +113,6 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Nav tabs */}
         <div className="max-w-7xl mx-auto px-6 flex items-center gap-1">
           {NAV_ITEMS.map((item) => (
             <button
@@ -198,7 +132,6 @@ export default function Index() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {/* SEARCH RESULTS */}
         {filtered !== null ? (
           <div>
             <p className="text-sm text-[#9A9690] mb-8">
@@ -207,7 +140,7 @@ export default function Index() {
             {filtered.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map((a, i) => (
-                  <ArticleCard key={a.id} article={a} delay={i * 60} />
+                  <ArticleCard key={a.id} article={a} delay={i * 60} onClick={() => goArticle(a.id)} />
                 ))}
               </div>
             ) : (
@@ -221,7 +154,6 @@ export default function Index() {
 
         ) : activeNav === "Главная" ? (
           <div className="animate-fade-in">
-            {/* Featured hero */}
             {featured && (
               <div className="mb-14">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -238,7 +170,10 @@ export default function Index() {
                       <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
                       <span>{featured.readTime} чтения</span>
                     </div>
-                    <button className="bg-[#1A1A1A] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#333] transition-colors">
+                    <button
+                      onClick={() => goArticle(featured.id)}
+                      className="bg-[#1A1A1A] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#333] transition-colors"
+                    >
                       Читать статью
                     </button>
                   </div>
@@ -250,20 +185,16 @@ export default function Index() {
               </div>
             )}
 
-            {/* Latest articles */}
             <div>
               <div className="flex items-baseline justify-between mb-7">
                 <h2 className="font-cormorant text-2xl font-semibold text-[#1A1A1A]">Последние статьи</h2>
-                <button
-                  onClick={() => setActiveNav("Статьи")}
-                  className="text-xs text-[#9A9690] hover:text-[#1A1A1A] transition-colors"
-                >
+                <button onClick={() => setActiveNav("Статьи")} className="text-xs text-[#9A9690] hover:text-[#1A1A1A] transition-colors">
                   Все статьи →
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {rest.map((a, i) => (
-                  <ArticleCard key={a.id} article={a} delay={i * 80} />
+                  <ArticleCard key={a.id} article={a} delay={i * 80} onClick={() => goArticle(a.id)} />
                 ))}
               </div>
             </div>
@@ -297,7 +228,7 @@ export default function Index() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {ARTICLES.map((a, i) => (
-                <ArticleCard key={a.id} article={a} delay={i * 60} />
+                <ArticleCard key={a.id} article={a} delay={i * 60} onClick={() => goArticle(a.id)} />
               ))}
             </div>
           </div>
@@ -307,18 +238,25 @@ export default function Index() {
   );
 }
 
-function ArticleCard({ article, delay = 0 }: { article: (typeof ARTICLES)[0]; delay?: number }) {
+function ArticleCard({
+  article,
+  delay = 0,
+  onClick,
+}: {
+  article: Article;
+  delay?: number;
+  onClick: () => void;
+}) {
   return (
     <article
       className="group cursor-pointer animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
+      onClick={onClick}
     >
-      <div className="rounded-xl aspect-video mb-4 overflow-hidden">
+      <div className="rounded-xl aspect-video mb-4 overflow-hidden transition-transform group-hover:scale-[1.02]">
         <CardPlaceholder seed={article.id} />
       </div>
-      <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">
-        {article.category}
-      </span>
+      <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{article.category}</span>
       <h3 className="font-cormorant text-xl font-semibold text-[#1A1A1A] leading-snug mt-1.5 mb-2 group-hover:text-[#4A4A48] transition-colors line-clamp-2">
         {article.title}
       </h3>
