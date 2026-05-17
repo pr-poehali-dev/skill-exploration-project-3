@@ -1,16 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import {
-  useAuth,
-  useUsers,
-  updateUserRole,
-  deleteUser,
-  ROLE_LABELS,
-  type Role,
-} from "@/store/authStore";
-import { useArticles, deleteArticle } from "@/store/articlesStore";
-import { useSiteSettings, updateSiteSettings, resetSiteSettings } from "@/store/siteSettingsStore";
+import { useAuth, useUsers, ROLE_LABELS } from "@/store/authStore";
+import { useArticles } from "@/store/articlesStore";
+import { useSiteSettings } from "@/store/siteSettingsStore";
+import AdminOverview from "@/components/admin/AdminOverview";
+import AdminUsers from "@/components/admin/AdminUsers";
+import AdminArticles from "@/components/admin/AdminArticles";
+import AdminSEO from "@/components/admin/AdminSEO";
 
 const TABS = [
   { key: "overview", label: "Обзор", icon: "LayoutDashboard" },
@@ -18,15 +15,6 @@ const TABS = [
   { key: "articles", label: "Статьи", icon: "FileText" },
   { key: "seo", label: "SEO и сайт", icon: "Search" },
 ];
-
-const ROLES: Role[] = ["user", "editor", "moderator", "admin"];
-
-const ROLE_COLORS: Record<Role, string> = {
-  user: "bg-[#F5F3EF] text-[#6A6660]",
-  editor: "bg-[#E4E8DC] text-[#5A6648]",
-  moderator: "bg-[#DCE0E8] text-[#48566A]",
-  admin: "bg-[#1A1A1A] text-white",
-};
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -96,413 +84,30 @@ export default function AdminPage() {
         </div>
 
         {tab === "overview" && (
-          <div className="animate-fade-in">
-            <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A] mb-8">Обзор</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              <StatCard label="Пользователей" value={stats.users} icon="Users" />
-              <StatCard label="Статей" value={stats.articles} icon="FileText" />
-              <StatCard label="Редакторов" value={stats.editors} icon="PenLine" />
-              <StatCard label="Модераторов + админов" value={stats.moderators + stats.admins} icon="Shield" />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <ShortcutCard
-                title="Управление пользователями"
-                description="Назначайте роли и удаляйте аккаунты"
-                icon="Users"
-                onClick={() => setTab("users")}
-              />
-              <ShortcutCard
-                title="Управление статьями"
-                description="Просмотр и удаление публикаций"
-                icon="FileText"
-                onClick={() => setTab("articles")}
-              />
-              <ShortcutCard
-                title="SEO и метаданные"
-                description="Title, description, OG-теги для сайта"
-                icon="Search"
-                onClick={() => setTab("seo")}
-              />
-            </div>
-          </div>
+          <AdminOverview
+            stats={stats}
+            onGoUsers={() => setTab("users")}
+            onGoArticles={() => setTab("articles")}
+            onGoSeo={() => setTab("seo")}
+          />
         )}
 
         {tab === "users" && (
-          <div className="animate-fade-in">
-            <div className="flex items-baseline justify-between mb-6">
-              <div className="flex items-baseline gap-3">
-                <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A]">Пользователи</h2>
-                <span className="text-sm text-[#9A9690]">{filteredUsers.length} из {users.length}</span>
-              </div>
-              <div className="relative">
-                <Icon name="Search" size={14} className="text-[#9A9690] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Поиск..."
-                  className="bg-white border border-[#E8E4DC] rounded-full pl-9 pr-4 py-2 text-sm outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#B8B4AC] w-56"
-                />
-              </div>
-            </div>
-
-            <div className="bg-white border border-[#E8E4DC] rounded-2xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#E8E4DC] text-xs text-[#7A7670] uppercase tracking-widest">
-                    <th className="text-left font-medium px-5 py-3">Пользователь</th>
-                    <th className="text-left font-medium px-5 py-3 hidden sm:table-cell">E-mail</th>
-                    <th className="text-left font-medium px-5 py-3">Роль</th>
-                    <th className="text-right font-medium px-5 py-3">Действия</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-[#F0EDE8] last:border-0 hover:bg-[#FAFAF8] transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0">
-                            <span className="font-cormorant font-semibold text-[#4A4A48]">
-                              {u.name[0].toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-[#1A1A1A]">{u.name}</p>
-                            <p className="text-xs text-[#9A9690] sm:hidden">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-[#6A6660] hidden sm:table-cell">{u.email}</td>
-                      <td className="px-5 py-4">
-                        <select
-                          value={u.role}
-                          onChange={(e) => updateUserRole(u.id, e.target.value as Role)}
-                          disabled={u.id === user?.id}
-                          className={`text-xs font-medium uppercase tracking-widest px-3 py-1.5 rounded-full border-0 outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${ROLE_COLORS[u.role]}`}
-                        >
-                          {ROLES.map((r) => (
-                            <option key={r} value={r} className="text-[#1A1A1A] bg-white normal-case">
-                              {ROLE_LABELS[r]}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        {u.id === user?.id ? (
-                          <span className="text-xs text-[#B8B4AC]">Это вы</span>
-                        ) : (
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => navigate(`/messages?u=${u.id}`)}
-                              className="text-[#9A9690] hover:text-[#1A1A1A] transition-colors p-1.5"
-                              title="Написать"
-                            >
-                              <Icon name="MessageCircle" size={15} />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Удалить пользователя «${u.name}»?`)) {
-                                  deleteUser(u.id);
-                                }
-                              }}
-                              className="text-[#C8C4BC] hover:text-red-500 transition-colors p-1.5"
-                              title="Удалить"
-                            >
-                              <Icon name="Trash2" size={15} />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredUsers.length === 0 && (
-                <div className="text-center py-16 text-[#9A9690]">
-                  <Icon name="UserX" size={28} className="mx-auto mb-3 opacity-40" />
-                  <p className="text-sm">Никого не найдено</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <AdminUsers
+            users={users}
+            filteredUsers={filteredUsers}
+            currentUser={user}
+            search={search}
+            onSearchChange={setSearch}
+          />
         )}
 
-        {tab === "articles" && (
-          <div className="animate-fade-in">
-            <div className="flex items-baseline justify-between mb-6">
-              <div className="flex items-baseline gap-3">
-                <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A]">Статьи</h2>
-                <span className="text-sm text-[#9A9690]">{articles.length} материалов</span>
-              </div>
-              <button
-                onClick={() => navigate("/new")}
-                className="flex items-center gap-2 bg-[#1A1A1A] text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-[#333] transition-colors"
-              >
-                <Icon name="Plus" size={14} />
-                Написать
-              </button>
-            </div>
-
-            <div className="bg-white border border-[#E8E4DC] rounded-2xl divide-y divide-[#F0EDE8] overflow-hidden">
-              {articles.map((a) => (
-                <div key={a.id} className="flex items-center gap-4 px-5 py-4 hover:bg-[#FAFAF8] transition-colors group">
-                  <div className="flex-1 cursor-pointer min-w-0" onClick={() => navigate(`/article/${a.id}`)}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{a.category}</span>
-                      {a.featured && (
-                        <span className="text-[10px] bg-[#1A1A1A] text-white px-2 py-0.5 rounded-full uppercase tracking-widest">
-                          Главная
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-cormorant text-lg font-semibold text-[#1A1A1A] leading-snug line-clamp-1">
-                      {a.title}
-                    </p>
-                    <p className="text-xs text-[#9A9690] mt-0.5">
-                      {a.author} · {a.date} · {a.readTime}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/article/${a.id}/edit`)}
-                    className="text-[#9A9690] hover:text-[#1A1A1A] transition-colors p-2"
-                    title="Редактировать"
-                  >
-                    <Icon name="PenLine" size={15} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Удалить статью «${a.title}»?`)) {
-                        deleteArticle(a.id);
-                      }
-                    }}
-                    className="text-[#C8C4BC] hover:text-red-500 transition-colors p-2"
-                    title="Удалить"
-                  >
-                    <Icon name="Trash2" size={15} />
-                  </button>
-                </div>
-              ))}
-              {articles.length === 0 && (
-                <div className="text-center py-16 text-[#9A9690]">
-                  <Icon name="FileX" size={28} className="mx-auto mb-3 opacity-40" />
-                  <p className="text-sm">Пока нет статей</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {tab === "articles" && <AdminArticles articles={articles} />}
 
         {tab === "seo" && (
-          <div className="animate-fade-in max-w-2xl">
-            <div className="flex items-baseline justify-between mb-8">
-              <div>
-                <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A]">SEO и сайт</h2>
-                <p className="text-sm text-[#9A9690] mt-1">Глобальные метаданные для всех страниц</p>
-              </div>
-              <button
-                onClick={() => {
-                  if (confirm("Сбросить все настройки сайта к значениям по умолчанию?")) {
-                    resetSiteSettings();
-                  }
-                }}
-                className="text-xs text-[#9A9690] hover:text-red-500 transition-colors"
-              >
-                Сбросить
-              </button>
-            </div>
-
-            <div className="space-y-6 bg-white border border-[#E8E4DC] rounded-2xl p-6">
-              <AdminField
-                label="Название сайта"
-                value={site.siteName}
-                onChange={(v) => { updateSiteSettings({ siteName: v }); flashSaved(setSiteSaved); }}
-              />
-              <AdminField
-                label="Слоган"
-                value={site.tagline}
-                hint="Короткая фраза-описание. Показывается после названия в title главной"
-                onChange={(v) => { updateSiteSettings({ tagline: v }); flashSaved(setSiteSaved); }}
-              />
-              <AdminField
-                label="Описание сайта"
-                value={site.description}
-                hint="Meta-описание для главной. 150–160 символов"
-                textarea
-                max={160}
-                onChange={(v) => { updateSiteSettings({ description: v }); flashSaved(setSiteSaved); }}
-              />
-              <AdminField
-                label="Ключевые слова"
-                value={site.keywords}
-                hint="Через запятую"
-                onChange={(v) => { updateSiteSettings({ keywords: v }); flashSaved(setSiteSaved); }}
-              />
-              <AdminField
-                label="OG-изображение по умолчанию (URL)"
-                value={site.ogImage}
-                hint="Будет использоваться, если у статьи нет своего"
-                onChange={(v) => { updateSiteSettings({ ogImage: v }); flashSaved(setSiteSaved); }}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <AdminField
-                  label="Twitter @handle"
-                  value={site.twitterHandle}
-                  onChange={(v) => { updateSiteSettings({ twitterHandle: v }); flashSaved(setSiteSaved); }}
-                  placeholder="@medium"
-                />
-                <AdminField
-                  label="Язык"
-                  value={site.language}
-                  onChange={(v) => { updateSiteSettings({ language: v }); flashSaved(setSiteSaved); }}
-                  placeholder="ru"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <AdminField
-                  label="Robots"
-                  value={site.robots}
-                  hint="Например: index, follow"
-                  onChange={(v) => { updateSiteSettings({ robots: v }); flashSaved(setSiteSaved); }}
-                />
-                <div>
-                  <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-1.5">
-                    Цвет темы
-                  </label>
-                  <div className="flex items-center gap-3 border-b border-[#E8E4DC] pb-2">
-                    <input
-                      type="color"
-                      value={site.themeColor}
-                      onChange={(e) => { updateSiteSettings({ themeColor: e.target.value }); flashSaved(setSiteSaved); }}
-                      className="w-10 h-7 border border-[#E8E4DC] rounded cursor-pointer"
-                    />
-                    <input
-                      value={site.themeColor}
-                      onChange={(e) => { updateSiteSettings({ themeColor: e.target.value }); flashSaved(setSiteSaved); }}
-                      className="flex-1 text-sm text-[#1A1A1A] bg-transparent outline-none"
-                    />
-                  </div>
-                  <p className="text-[11px] text-[#B8B4AC] mt-1">Цвет адресной строки в мобильных браузерах</p>
-                </div>
-              </div>
-
-              {siteSaved && (
-                <div className="text-xs text-[#3a7c2a] flex items-center gap-2 animate-fade-in">
-                  <Icon name="Check" size={13} />
-                  Сохранено
-                </div>
-              )}
-            </div>
-
-            {/* Preview */}
-            <div className="mt-8">
-              <p className="text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-3">Превью в выдаче</p>
-              <div className="border border-[#E8E4DC] rounded-2xl p-5 bg-white">
-                <p className="text-xs text-[#3a7c2a] mb-1">https://medium.example/</p>
-                <p className="text-[18px] text-[#1a0dab] leading-snug mb-1">
-                  {site.siteName} · {site.tagline}
-                </p>
-                <p className="text-sm text-[#4d5156] line-clamp-3">{site.description}</p>
-              </div>
-            </div>
-          </div>
+          <AdminSEO site={site} siteSaved={siteSaved} setSiteSaved={setSiteSaved} />
         )}
       </main>
     </div>
-  );
-}
-
-function flashSaved(setter: (v: boolean) => void) {
-  setter(true);
-  setTimeout(() => setter(false), 1500);
-}
-
-function AdminField({
-  label,
-  value,
-  onChange,
-  hint,
-  placeholder,
-  textarea,
-  max,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  hint?: string;
-  placeholder?: string;
-  textarea?: boolean;
-  max?: number;
-}) {
-  const overLimit = max ? value.length > max : false;
-  return (
-    <div>
-      <div className="flex items-baseline justify-between mb-1.5">
-        <label className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{label}</label>
-        {max && (
-          <span className={`text-[10px] ${overLimit ? "text-red-400" : "text-[#B8B4AC]"}`}>
-            {value.length} / {max}
-          </span>
-        )}
-      </div>
-      {textarea ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={2}
-          className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC] resize-none leading-relaxed"
-        />
-      ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC]"
-        />
-      )}
-      {hint && <p className="text-[11px] text-[#B8B4AC] mt-1">{hint}</p>}
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
-  return (
-    <div className="bg-white border border-[#E8E4DC] rounded-2xl p-5">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{label}</span>
-        <Icon name={icon} size={16} className="text-[#C8C4BC]" />
-      </div>
-      <p className="font-cormorant text-4xl font-semibold text-[#1A1A1A]">{value}</p>
-    </div>
-  );
-}
-
-function ShortcutCard({
-  title,
-  description,
-  icon,
-  onClick,
-}: {
-  title: string;
-  description: string;
-  icon: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="text-left bg-white border border-[#E8E4DC] rounded-2xl p-6 hover:border-[#1A1A1A] hover:shadow-sm transition-all group"
-    >
-      <div className="flex items-start gap-4">
-        <div className="w-11 h-11 rounded-xl bg-[#F5F3EF] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors">
-          <Icon name={icon} size={18} className="text-[#4A4A48] group-hover:text-white transition-colors" />
-        </div>
-        <div className="flex-1">
-          <p className="font-cormorant text-xl font-semibold text-[#1A1A1A] mb-1">{title}</p>
-          <p className="text-sm text-[#7A7670]">{description}</p>
-        </div>
-        <Icon name="ArrowRight" size={16} className="text-[#C8C4BC] group-hover:text-[#1A1A1A] transition-colors mt-3" />
-      </div>
-    </button>
   );
 }
