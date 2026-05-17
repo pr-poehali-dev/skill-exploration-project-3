@@ -108,6 +108,8 @@ export default function Index() {
               </button>
             )}
 
+            {user && <NotificationBell />}
+
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((v) => !v)}
@@ -181,8 +183,6 @@ export default function Index() {
                 </div>
               )}
             </div>
-
-            {user && <NotificationBell />}
           </div>
         </div>
 
