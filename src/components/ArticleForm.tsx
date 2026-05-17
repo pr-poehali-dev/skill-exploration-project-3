@@ -2,10 +2,11 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import ArticleEditor, { type ArticleEditorHandle } from "@/components/ArticleEditor";
-import { CATEGORIES, type Article, type EditorData, type ArticleSEO, type ArticleSource } from "@/data/articles";
+import { type Article, type EditorData, type ArticleSEO, type ArticleSource } from "@/data/articles";
 import { addArticle, updateArticle } from "@/store/articlesStore";
 import { editorToPlainText, estimateReadTimeFromEditor, markdownToEditor } from "@/lib/editorConvert";
 import { useAuth, ROLE_LABELS } from "@/store/authStore";
+import { useCategories } from "@/store/categoriesStore";
 
 function slugify(text: string): string {
   const map: Record<string, string> = {
@@ -30,12 +31,13 @@ export default function ArticleForm({ mode, article }: Props) {
   const navigate = useNavigate();
   const editorRef = useRef<ArticleEditorHandle>(null);
   const currentUser = useAuth();
+  const CATEGORIES = useCategories();
 
   const defaultAuthor = article?.author ?? currentUser?.name ?? "";
   const defaultRole = article?.authorRole ?? (currentUser ? ROLE_LABELS[currentUser.role] : "Автор");
 
   const [title, setTitle] = useState(article?.title ?? "");
-  const [category, setCategory] = useState(article?.category ?? CATEGORIES[0].name);
+  const [category, setCategory] = useState(article?.category ?? (CATEGORIES[0]?.name || ""));
   const [excerpt, setExcerpt] = useState(article?.excerpt ?? "");
   const [author, setAuthor] = useState(defaultAuthor);
   const [authorRole, setAuthorRole] = useState(defaultRole);

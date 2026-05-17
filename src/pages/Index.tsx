@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { CATEGORIES, type Article } from "@/data/articles";
+import { type Article } from "@/data/articles";
 import { useArticles } from "@/store/articlesStore";
+import { useCategories } from "@/store/categoriesStore";
 import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/store/authStore";
 import { useUnreadCount } from "@/store/messagesStore";
 import { useSEO } from "@/lib/useSEO";
@@ -20,6 +21,7 @@ export default function Index() {
   const navigate = useNavigate();
   const user = useAuth();
   const unread = useUnreadCount(user?.id);
+  const CATEGORIES = useCategories();
   useSEO({ type: "website" });
 
   useEffect(() => {
@@ -330,15 +332,21 @@ export default function Index() {
                     const count = articles.filter((a) => a.category === cat.name).length;
                     return (
                       <button
-                        key={cat.name}
+                        key={cat.id}
                         onClick={() => setActiveCategory(cat.name)}
                         className="group text-left p-7 rounded-2xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 animate-fade-in"
                         style={{ background: cat.color, animationDelay: `${i * 60}ms` }}
                       >
+                        <div className="w-11 h-11 rounded-xl bg-white/60 flex items-center justify-center mb-4">
+                          <Icon name={cat.icon} fallback="Folder" size={18} className="text-[#1A1A1A]" />
+                        </div>
                         <p className="font-cormorant text-2xl font-semibold text-[#1A1A1A] mb-1.5">{cat.name}</p>
                         <p className="text-sm text-[#6A6660]">
                           {count} {count === 1 ? "статья" : "статей"}
                         </p>
+                        {cat.description && (
+                          <p className="text-xs text-[#6A6660] mt-2 opacity-80 line-clamp-2">{cat.description}</p>
+                        )}
                       </button>
                     );
                   })}
