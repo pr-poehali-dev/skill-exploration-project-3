@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ARTICLES } from "@/data/articles";
 import Icon from "@/components/ui/icon";
 
@@ -87,6 +88,19 @@ export default function ArticlePage() {
     }
   };
 
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setProgress(total > 0 ? Math.min(100, (scrolled / total) * 100) : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const related = ARTICLES.filter((a) => a.id !== article?.id).slice(0, 3);
 
   if (!article) {
@@ -106,6 +120,7 @@ export default function ArticlePage() {
     <div className="min-h-screen bg-[#FAFAF8] font-golos">
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
+        <div className="absolute bottom-0 left-0 h-[2px] bg-[#1A1A1A] transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-4">
           <button
             onClick={goBack}
