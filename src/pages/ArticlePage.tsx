@@ -79,6 +79,14 @@ export default function ArticlePage() {
   const navigate = useNavigate();
   const article = ARTICLES.find((a) => a.id === Number(id));
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   const related = ARTICLES.filter((a) => a.id !== article?.id).slice(0, 3);
 
   if (!article) {
@@ -100,7 +108,7 @@ export default function ArticlePage() {
       <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-4">
           <button
-            onClick={() => navigate("/")}
+            onClick={goBack}
             className="flex items-center gap-2 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
           >
             <Icon name="ArrowLeft" size={15} />
