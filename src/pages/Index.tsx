@@ -113,14 +113,6 @@ export default function Index() {
               </button>
             )}
 
-            <button
-              onClick={() => updateTheme({ mode: theme.mode === "dark" ? "light" : "dark" })}
-              className="w-9 h-9 rounded-full border-2 border-[#E8E4DC] bg-white hover:border-[#C8C4BC] flex items-center justify-center transition-all"
-              title={theme.mode === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
-            >
-              <Icon name={theme.mode === "dark" ? "Sun" : "Moon"} size={15} className="text-[#6A6660]" />
-            </button>
-
             {user && <NotificationBell />}
 
             <div className="relative" ref={profileRef}>
@@ -177,7 +169,28 @@ export default function Index() {
                       {isAdmin(user) && (
                         <MenuItem icon="Shield" label="Админ-панель" onClick={() => { setProfileOpen(false); navigate("/admin"); }} />
                       )}
-                      <div className="border-t border-[#F0EDE8] mt-1">
+
+                      <div className="border-t border-[#F0EDE8] mt-1 px-4 py-2.5 flex items-center gap-3">
+                        <Icon name={theme.mode === "dark" ? "Moon" : "Sun"} size={14} className="text-[#9A9690]" />
+                        <span className="flex-1 text-sm text-[#1A1A1A]">
+                          {theme.mode === "dark" ? "Тёмная тема" : "Светлая тема"}
+                        </span>
+                        <button
+                          onClick={() => updateTheme({ mode: theme.mode === "dark" ? "light" : "dark" })}
+                          className={`relative w-10 h-5 rounded-full transition-colors ${
+                            theme.mode === "dark" ? "bg-[#1A1A1A]" : "bg-[#E8E4DC]"
+                          }`}
+                          title="Переключить тему"
+                        >
+                          <span
+                            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${
+                              theme.mode === "dark" ? "translate-x-[22px]" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      <div className="border-t border-[#F0EDE8]">
                         <button
                           onClick={() => { setProfileOpen(false); logoutUser(); navigate("/"); }}
                           className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-500 transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
