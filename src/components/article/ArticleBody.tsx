@@ -17,55 +17,68 @@ interface Props {
 export default function ArticleBody({ article, related }: Props) {
   const navigate = useNavigate();
 
+  const hasCover = Boolean(article.cover);
+
   return (
     <main>
-      {/* Hero */}
-      <div className="max-w-2xl mx-auto px-6 pt-14 pb-10 animate-fade-in">
-        <span className="inline-block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-5 border border-[#E0DDD8] px-3 py-1 rounded-full">
-          {article.category}
-        </span>
-        <h1 className="font-cormorant text-4xl sm:text-5xl font-semibold text-[#1A1A1A] leading-[1.15] mb-6">
-          {article.title}
-        </h1>
-        <p className="text-[#6A6660] text-lg leading-relaxed mb-8">{article.excerpt}</p>
+      {/* Hero with cover as background */}
+      <section className="relative overflow-hidden -mt-14">
+        {hasCover ? (
+          <>
+            <img
+              src={article.cover}
+              alt={article.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-[#FAFAF8]" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0">
+              <CardPlaceholder seed={article.id} />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-[#FAFAF8]" />
+          </>
+        )}
 
-        {/* Author + meta */}
-        <div className="flex items-center gap-4 pb-8 border-b border-[#E8E4DC]">
-          <div className="w-10 h-10 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0">
-            <span className="font-cormorant font-semibold text-[#4A4A48] text-lg leading-none">
-              {article.author[0]}
-            </span>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[#1A1A1A]">{article.author}</p>
-            <p className="text-xs text-[#9A9690]">{article.authorRole}</p>
-          </div>
-          <div className="ml-auto flex items-center gap-3 sm:gap-4 text-xs text-[#9A9690] flex-wrap justify-end">
-            <span>{article.date}</span>
-            <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
-            <span className="flex items-center gap-1">
-              <Icon name="Clock" size={12} />
-              {article.readTime} чтения
-            </span>
-            <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
-            <span className="flex items-center gap-1" title="Просмотры">
-              <Icon name="Eye" size={12} />
-              {formatViews(article.views || 0)}
-            </span>
+        <div className="relative max-w-2xl mx-auto px-6 pt-32 sm:pt-40 pb-16 animate-fade-in">
+          <span className="inline-block text-xs font-medium text-white uppercase tracking-widest mb-5 border border-white/40 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+            {article.category}
+          </span>
+          <h1 className="font-cormorant text-4xl sm:text-5xl font-semibold text-white leading-[1.15] mb-6 drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]">
+            {article.title}
+          </h1>
+          <p className="text-white/90 text-lg leading-relaxed mb-8 drop-shadow-[0_1px_6px_rgba(0,0,0,0.3)]">
+            {article.excerpt}
+          </p>
+
+          {/* Author + meta */}
+          <div className="flex items-center gap-4 pb-8">
+            <div className="w-10 h-10 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm flex items-center justify-center shrink-0">
+              <span className="font-cormorant font-semibold text-white text-lg leading-none">
+                {article.author[0]}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">{article.author}</p>
+              <p className="text-xs text-white/70">{article.authorRole}</p>
+            </div>
+            <div className="ml-auto flex items-center gap-3 sm:gap-4 text-xs text-white/80 flex-wrap justify-end">
+              <span>{article.date}</span>
+              <span className="w-1 h-1 rounded-full bg-white/50" />
+              <span className="flex items-center gap-1">
+                <Icon name="Clock" size={12} />
+                {article.readTime} чтения
+              </span>
+              <span className="w-1 h-1 rounded-full bg-white/50" />
+              <span className="flex items-center gap-1" title="Просмотры">
+                <Icon name="Eye" size={12} />
+                {formatViews(article.views || 0)}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Cover image */}
-      <div className="max-w-4xl mx-auto px-6 mb-12">
-        <div className="rounded-2xl overflow-hidden aspect-[16/7] bg-[#F0EDE8]">
-          {article.cover ? (
-            <img src={article.cover} alt={article.title} className="w-full h-full object-cover" />
-          ) : (
-            <CardPlaceholder seed={article.id} />
-          )}
-        </div>
-      </div>
+      </section>
 
       {/* Article body */}
       <div className="max-w-2xl mx-auto px-6 pb-10">
