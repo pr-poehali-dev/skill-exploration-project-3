@@ -1,7 +1,75 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useArticles, useBookmarks } from "@/store/articlesStore";
+import type { EditorData } from "@/data/articles";
 import Icon from "@/components/ui/icon";
+
+function renderEditorBlocks(data: EditorData) {
+  return data.blocks.map((block, idx) => {
+    const d = block.data as {
+      text?: string;
+      level?: number;
+      items?: string[];
+      style?: "ordered" | "unordered";
+      caption?: string;
+    };
+    const key = block.id || `b-${idx}`;
+
+    switch (block.type) {
+      case "header": {
+        const Tag = (d.level === 3 ? "h3" : "h2") as "h2" | "h3";
+        const cls = d.level === 3
+          ? "font-cormorant text-2xl font-semibold text-[#1A1A1A] mt-8 mb-3 leading-tight"
+          : "font-cormorant text-3xl font-semibold text-[#1A1A1A] mt-10 mb-4 leading-tight";
+        return <Tag key={key} className={cls} dangerouslySetInnerHTML={{ __html: d.text || "" }} />;
+      }
+      case "paragraph":
+        return (
+          <p
+            key={key}
+            className="text-[#4A4A48] leading-[1.85] text-[17px] mb-5 article-prose"
+            dangerouslySetInnerHTML={{ __html: d.text || "" }}
+          />
+        );
+      case "quote":
+        return (
+          <blockquote key={key} className="border-l-2 border-[#1A1A1A] pl-6 my-8">
+            <p
+              className="font-cormorant text-xl italic text-[#4A4A48] leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: d.text || "" }}
+            />
+            {d.caption && (
+              <p
+                className="mt-2 text-sm text-[#9A9690] font-golos"
+                dangerouslySetInnerHTML={{ __html: "— " + d.caption }}
+              />
+            )}
+          </blockquote>
+        );
+      case "list": {
+        const ListTag = (d.style === "ordered" ? "ol" : "ul") as "ol" | "ul";
+        const cls = d.style === "ordered"
+          ? "list-decimal pl-6 space-y-2 mb-6 text-[#4A4A48] text-[17px] leading-relaxed"
+          : "list-disc pl-6 space-y-2 mb-6 text-[#4A4A48] text-[17px] leading-relaxed";
+        return (
+          <ListTag key={key} className={cls}>
+            {(d.items || []).map((it, i) => (
+              <li key={i} dangerouslySetInnerHTML={{ __html: it }} />
+            ))}
+          </ListTag>
+        );
+      }
+      case "delimiter":
+        return (
+          <div key={key} className="flex justify-center my-10 text-[#C8C4BC] tracking-[0.6em] text-lg select-none">
+            * * *
+          </div>
+        );
+      default:
+        return null;
+    }
+  });
+}
 
 function renderContent(content: string) {
   const lines = content.split("\n");
@@ -151,6 +219,14 @@ export default function ArticlePage() {
           <div className="flex-1" />
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate(`/article/${article.id}/edit`)}
+              className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
+              title="Редактировать"
+            >
+              <Icon name="PenLine" size={15} />
+              <span className="hidden sm:inline">Редактировать</span>
+            </button>
+            <button
               onClick={() => toggle(article.id)}
               className={`flex items-center gap-1.5 text-sm transition-colors ${isBookmarked ? "text-[#1A1A1A]" : "text-[#6A6660] hover:text-[#1A1A1A]"}`}
             >
@@ -216,7 +292,9 @@ export default function ArticlePage() {
 
         {/* Article body */}
         <div className="max-w-2xl mx-auto px-6 pb-16">
-          {renderContent(article.content)}
+          {article.editorData?.blocks?.length
+            ? renderEditorBlocks(article.editorData)
+            : renderContent(article.content)}
         </div>
 
         {/* Divider */}

@@ -1,3 +1,15 @@
+export interface EditorBlock {
+  id?: string;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+export interface EditorData {
+  time?: number;
+  blocks: EditorBlock[];
+  version?: string;
+}
+
 export interface Article {
   id: number;
   category: string;
@@ -9,6 +21,7 @@ export interface Article {
   author: string;
   authorRole: string;
   content: string;
+  editorData?: EditorData;
 }
 
 export const ARTICLES: Article[] = [

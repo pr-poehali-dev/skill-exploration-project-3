@@ -54,6 +54,12 @@ export function addArticle(article: Omit<Article, "id" | "date" | "featured">): 
   return newArticle;
 }
 
+export function updateArticle(id: number, patch: Partial<Article>) {
+  _articles = _articles.map((a) => (a.id === id ? { ...a, ...patch } : a));
+  saveArticles(_articles);
+  window.dispatchEvent(new Event("articles-updated"));
+}
+
 export function deleteArticle(id: number) {
   _articles = _articles.filter((a) => a.id !== id);
   saveArticles(_articles);
