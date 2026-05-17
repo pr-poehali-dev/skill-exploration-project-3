@@ -181,16 +181,26 @@ export default function AdminPage() {
                         {u.id === user?.id ? (
                           <span className="text-xs text-[#B8B4AC]">Это вы</span>
                         ) : (
-                          <button
-                            onClick={() => {
-                              if (confirm(`Удалить пользователя «${u.name}»?`)) {
-                                deleteUser(u.id);
-                              }
-                            }}
-                            className="text-[#C8C4BC] hover:text-red-500 transition-colors"
-                          >
-                            <Icon name="Trash2" size={15} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => navigate(`/messages?u=${u.id}`)}
+                              className="text-[#9A9690] hover:text-[#1A1A1A] transition-colors p-1.5"
+                              title="Написать"
+                            >
+                              <Icon name="MessageCircle" size={15} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Удалить пользователя «${u.name}»?`)) {
+                                  deleteUser(u.id);
+                                }
+                              }}
+                              className="text-[#C8C4BC] hover:text-red-500 transition-colors p-1.5"
+                              title="Удалить"
+                            >
+                              <Icon name="Trash2" size={15} />
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

@@ -13,6 +13,7 @@ import BookmarksPage from "./pages/BookmarksPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
+import MessengerPage from "./pages/MessengerPage";
 import RequireAuth from "./components/RequireAuth";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +67,14 @@ const App = () => (
             element={
               <RequireAuth roles={["admin"]}>
                 <AdminPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <RequireAuth>
+                <MessengerPage />
               </RequireAuth>
             }
           />

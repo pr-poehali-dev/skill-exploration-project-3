@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import { CATEGORIES, type Article } from "@/data/articles";
 import { useArticles } from "@/store/articlesStore";
 import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/store/authStore";
+import { useUnreadCount } from "@/store/messagesStore";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
 
@@ -15,6 +16,7 @@ export default function Index() {
   const profileRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const user = useAuth();
+  const unread = useUnreadCount(user?.id);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -104,7 +106,7 @@ export default function Index() {
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((v) => !v)}
-                className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden ${
+                className={`relative w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all overflow-hidden ${
                   profileOpen ? "border-[#1A1A1A] bg-[#1A1A1A]" : "border-[#E8E4DC] bg-white hover:border-[#C8C4BC]"
                 }`}
               >
@@ -116,6 +118,11 @@ export default function Index() {
                   <Icon name="User" size={16} className={profileOpen ? "text-white" : "text-[#6A6660]"} />
                 )}
               </button>
+              {unread > 0 && !profileOpen && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-medium border-2 border-[#FAFAF8] pointer-events-none">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
 
               {profileOpen && (
                 <div className="absolute right-0 top-12 w-60 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
@@ -129,6 +136,7 @@ export default function Index() {
                         </span>
                       </div>
                       <MenuItem icon="User" label="Мой профиль" onClick={() => { setProfileOpen(false); navigate("/profile"); }} />
+                      <MenuItem icon="MessageCircle" label="Сообщения" badge={unread} onClick={() => { setProfileOpen(false); navigate("/messages"); }} />
                       <MenuItem icon="Bookmark" label="Закладки" onClick={() => { setProfileOpen(false); navigate("/bookmarks"); }} />
                       {canCreateArticle(user) && (
                         <MenuItem icon="PenLine" label="Написать статью" onClick={() => { setProfileOpen(false); navigate("/new"); }} />
@@ -283,14 +291,29 @@ export default function Index() {
   );
 }
 
-function MenuItem({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  badge,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  badge?: number;
+}) {
   return (
     <button
       onClick={onClick}
       className="w-full text-left px-4 py-2.5 text-sm text-[#1A1A1A] transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
     >
       <Icon name={icon} size={14} className="text-[#9A9690]" />
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge && badge > 0 && (
+        <span className="bg-[#1A1A1A] text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center font-medium">
+          {badge > 9 ? "9+" : badge}
+        </span>
+      )}
     </button>
   );
 }
