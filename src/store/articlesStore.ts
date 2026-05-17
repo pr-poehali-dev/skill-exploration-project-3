@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { ARTICLES as SEED_ARTICLES, type Article } from "@/data/articles";
+import { addNotification } from "./notificationsStore";
+import { listUsers } from "./authStore";
 
 const STORAGE_KEY = "blog_articles";
 const BOOKMARKS_KEY = "blog_bookmarks";
@@ -51,6 +53,19 @@ export function addArticle(article: Omit<Article, "id" | "date" | "featured">): 
   _articles = [newArticle, ..._articles];
   saveArticles(_articles);
   window.dispatchEvent(new Event("articles-updated"));
+
+  // Notify all users except author
+  for (const u of listUsers()) {
+    if (u.id === newArticle.authorId) continue;
+    addNotification({
+      userId: u.id,
+      type: "article",
+      title: "Новая статья",
+      text: `${newArticle.author}: ${newArticle.title}`,
+      link: `/article/${newArticle.id}`,
+    });
+  }
+
   return newArticle;
 }
 

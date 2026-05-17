@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { addNotification } from "./notificationsStore";
 
 export type Role = "user" | "moderator" | "editor" | "admin";
 
@@ -124,6 +125,7 @@ export function logoutUser() {
 }
 
 export function updateUserRole(userId: number, role: Role) {
+  const target = _users.find((u) => u.id === userId);
   _users = _users.map((u) => (u.id === userId ? { ...u, role } : u));
   saveUsers(_users);
   if (_current?.id === userId) {
@@ -131,6 +133,15 @@ export function updateUserRole(userId: number, role: Role) {
     saveSession(_current);
   } else {
     window.dispatchEvent(new Event("auth-changed"));
+  }
+  if (target && target.role !== role) {
+    addNotification({
+      userId,
+      type: "role",
+      title: "Ваша роль изменена",
+      text: `Теперь вы — ${ROLE_LABELS[role]}`,
+      link: "/profile",
+    });
   }
 }
 

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useArticles, deleteArticle } from "@/store/articlesStore";
 import { useAuth, updateCurrentUser, ROLE_LABELS } from "@/store/authStore";
 
 const TABS = ["Мои статьи", "Настройки"];
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2 MB
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ export default function ProfilePage() {
   const [name, setName] = useState(user?.name || "");
   const [role] = useState(user ? ROLE_LABELS[user.role] : "");
   const [saved, setSaved] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const articles = useArticles();
   const myArticles = articles.filter((a) => a.authorId === user?.id);
 
@@ -20,6 +23,46 @@ export default function ProfilePage() {
     updateCurrentUser({ name });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handlePickAvatar = () => {
+    setAvatarError("");
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Выберите изображение");
+      return;
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      setAvatarError("Файл больше 2 МБ. Выберите поменьше");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Resize via canvas to keep storage small
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const ratio = Math.min(img.width, img.height);
+        const sx = (img.width - ratio) / 2;
+        const sy = (img.height - ratio) / 2;
+        ctx.drawImage(img, sx, sy, ratio, ratio, 0, 0, size, size);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        updateCurrentUser({ avatar: dataUrl });
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -41,12 +84,32 @@ export default function ProfilePage() {
       <main className="max-w-3xl mx-auto px-6 py-10 animate-fade-in">
         {/* Avatar + name */}
         <div className="flex items-center gap-5 mb-10">
-          <div className="w-16 h-16 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0">
-            <span className="font-cormorant font-semibold text-3xl text-[#4A4A48]">
-              {name ? name[0].toUpperCase() : "А"}
-            </span>
+          <div className="relative group">
+            <div className="w-20 h-20 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0 overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-cormorant font-semibold text-3xl text-[#4A4A48]">
+                  {user?.name ? user.name[0].toUpperCase() : "А"}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handlePickAvatar}
+              className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
+              title="Изменить аватар"
+            >
+              <Icon name="Camera" size={20} className="text-white" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="font-cormorant text-2xl font-semibold text-[#1A1A1A]">
               {user?.name || "Аноним"}
             </p>
@@ -54,6 +117,27 @@ export default function ProfilePage() {
             <span className="inline-block mt-1.5 text-[10px] font-medium uppercase tracking-widest text-[#7A7670] bg-[#F5F3EF] px-2 py-0.5 rounded-full">
               {role}
             </span>
+            <div className="flex items-center gap-3 mt-2">
+              <button
+                onClick={handlePickAvatar}
+                className="text-xs text-[#6A6660] hover:text-[#1A1A1A] transition-colors flex items-center gap-1"
+              >
+                <Icon name="Upload" size={11} />
+                {user?.avatar ? "Сменить" : "Загрузить аватар"}
+              </button>
+              {user?.avatar && (
+                <button
+                  onClick={() => updateCurrentUser({ avatar: undefined })}
+                  className="text-xs text-[#9A9690] hover:text-red-400 transition-colors flex items-center gap-1"
+                >
+                  <Icon name="Trash2" size={11} />
+                  Удалить
+                </button>
+              )}
+            </div>
+            {avatarError && (
+              <p className="text-xs text-red-400 mt-1.5">{avatarError}</p>
+            )}
           </div>
         </div>
 

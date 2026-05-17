@@ -6,6 +6,7 @@ import { useArticles } from "@/store/articlesStore";
 import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/store/authStore";
 import { useUnreadCount } from "@/store/messagesStore";
 import { useSEO } from "@/lib/useSEO";
+import NotificationBell from "@/components/NotificationBell";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
 
@@ -114,7 +115,9 @@ export default function Index() {
                   profileOpen ? "border-[#1A1A1A] bg-[#1A1A1A]" : "border-[#E8E4DC] bg-white hover:border-[#C8C4BC]"
                 }`}
               >
-                {user ? (
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : user ? (
                   <span className={`font-cormorant font-semibold text-sm ${profileOpen ? "text-white" : "text-[#4A4A48]"}`}>
                     {user.name[0].toUpperCase()}
                   </span>
@@ -132,12 +135,23 @@ export default function Index() {
                 <div className="absolute right-0 top-12 w-60 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
                   {user ? (
                     <>
-                      <div className="px-4 py-3 border-b border-[#F0EDE8]">
-                        <p className="text-sm font-medium text-[#1A1A1A] truncate">{user.name}</p>
-                        <p className="text-xs text-[#9A9690] truncate">{user.email}</p>
-                        <span className="inline-block mt-1.5 text-[10px] font-medium uppercase tracking-widest text-[#7A7670] bg-[#F5F3EF] px-2 py-0.5 rounded-full">
-                          {ROLE_LABELS[user.role]}
-                        </span>
+                      <div className="px-4 py-3 border-b border-[#F0EDE8] flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0 overflow-hidden">
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="font-cormorant font-semibold text-[#4A4A48]">
+                              {user.name[0].toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#1A1A1A] truncate">{user.name}</p>
+                          <p className="text-xs text-[#9A9690] truncate">{user.email}</p>
+                          <span className="inline-block mt-1 text-[10px] font-medium uppercase tracking-widest text-[#7A7670] bg-[#F5F3EF] px-2 py-0.5 rounded-full">
+                            {ROLE_LABELS[user.role]}
+                          </span>
+                        </div>
                       </div>
                       <MenuItem icon="User" label="Мой профиль" onClick={() => { setProfileOpen(false); navigate("/profile"); }} />
                       <MenuItem icon="MessageCircle" label="Сообщения" badge={unread} onClick={() => { setProfileOpen(false); navigate("/messages"); }} />
@@ -167,6 +181,8 @@ export default function Index() {
                 </div>
               )}
             </div>
+
+            {user && <NotificationBell />}
           </div>
         </div>
 

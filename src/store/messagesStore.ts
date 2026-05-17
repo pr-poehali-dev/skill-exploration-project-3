@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { addNotification } from "./notificationsStore";
+import { listUsers } from "./authStore";
 
 export interface Message {
   id: number;
@@ -43,6 +45,17 @@ export function sendMessage(fromId: number, toId: number, text: string): Message
   };
   _messages = [..._messages, msg];
   save(_messages);
+
+  // Notify recipient
+  const sender = listUsers().find((u) => u.id === fromId);
+  addNotification({
+    userId: toId,
+    type: "message",
+    title: sender ? `Сообщение от ${sender.name}` : "Новое сообщение",
+    text: text.trim().slice(0, 80),
+    link: `/messages?u=${fromId}`,
+  });
+
   return msg;
 }
 

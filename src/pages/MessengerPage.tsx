@@ -122,7 +122,7 @@ export default function MessengerPage() {
                       onClick={() => openChat(u.id)}
                       className="w-full text-left flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors"
                     >
-                      <Avatar name={u.name} />
+                      <Avatar name={u.name} avatar={u.avatar} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[#1A1A1A] truncate">{u.name}</p>
                         <p className="text-xs text-[#9A9690] truncate">{ROLE_LABELS[u.role]}</p>
@@ -156,7 +156,7 @@ export default function MessengerPage() {
                       isActive ? "bg-[#F5F3EF]" : "hover:bg-[#FAFAF8]"
                     }`}
                   >
-                    <Avatar name={p.name} />
+                    <Avatar name={p.name} avatar={p.avatar} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
                         <p className="text-sm font-medium text-[#1A1A1A] truncate">{p.name}</p>
@@ -190,7 +190,7 @@ export default function MessengerPage() {
                   >
                     <Icon name="ArrowLeft" size={16} />
                   </button>
-                  <Avatar name={partner.name} />
+                  <Avatar name={partner.name} avatar={partner.avatar} />
                   <div className="flex-1 min-w-0">
                     <p className="font-cormorant text-lg font-semibold text-[#1A1A1A] truncate">{partner.name}</p>
                     <p className="text-xs text-[#9A9690]">{ROLE_LABELS[partner.role]}</p>
@@ -214,7 +214,7 @@ export default function MessengerPage() {
                       <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                         {!mine && (
                           <div className={showAvatar ? "" : "opacity-0"}>
-                            <Avatar name={partner.name} size="sm" />
+                            <Avatar name={partner.name} avatar={partner.avatar} size="sm" />
                           </div>
                         )}
                         <div
@@ -283,11 +283,15 @@ export default function MessengerPage() {
   );
 }
 
-function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
+function Avatar({ name, size = "md", avatar }: { name: string; size?: "sm" | "md"; avatar?: string }) {
   const cls = size === "sm" ? "w-7 h-7 text-sm" : "w-10 h-10 text-base";
   return (
-    <div className={`${cls} rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0`}>
-      <span className="font-cormorant font-semibold text-[#4A4A48]">{name[0].toUpperCase()}</span>
+    <div className={`${cls} rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0 overflow-hidden`}>
+      {avatar ? (
+        <img src={avatar} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <span className="font-cormorant font-semibold text-[#4A4A48]">{name[0].toUpperCase()}</span>
+      )}
     </div>
   );
 }
