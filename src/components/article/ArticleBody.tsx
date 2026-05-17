@@ -58,8 +58,12 @@ export default function ArticleBody({ article, related }: Props) {
 
       {/* Cover image */}
       <div className="max-w-4xl mx-auto px-6 mb-12">
-        <div className="rounded-2xl overflow-hidden aspect-[16/7]">
-          <CardPlaceholder seed={article.id} />
+        <div className="rounded-2xl overflow-hidden aspect-[16/7] bg-[#F0EDE8]">
+          {article.cover ? (
+            <img src={article.cover} alt={article.title} className="w-full h-full object-cover" />
+          ) : (
+            <CardPlaceholder seed={article.id} />
+          )}
         </div>
       </div>
 
@@ -118,8 +122,12 @@ export default function ArticleBody({ article, related }: Props) {
               className="text-left group animate-fade-in"
               style={{ animationDelay: `${i * 80}ms` }}
             >
-              <div className="rounded-xl overflow-hidden aspect-video mb-3 transition-transform group-hover:scale-[1.02]">
-                <CardPlaceholder seed={a.id} />
+              <div className="rounded-xl overflow-hidden aspect-video mb-3 transition-transform group-hover:scale-[1.02] bg-[#F0EDE8]">
+                {a.cover ? (
+                  <img src={a.cover} alt={a.title} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <CardPlaceholder seed={a.id} />
+                )}
               </div>
               <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{a.category}</span>
               <h3 className="font-cormorant text-lg font-semibold text-[#1A1A1A] leading-snug mt-1.5 group-hover:text-[#4A4A48] transition-colors line-clamp-2">

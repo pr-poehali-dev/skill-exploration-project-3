@@ -45,7 +45,11 @@ export default function IndexHome({ featured, rest, goArticle, setActiveNav }: P
               </button>
             </div>
             <div className="bg-[#EDE9E2] rounded-2xl aspect-[4/3] flex items-center justify-center overflow-hidden">
-              <FeaturedPlaceholder />
+              {featured.cover ? (
+                <img src={featured.cover} alt={featured.title} className="w-full h-full object-cover" />
+              ) : (
+                <FeaturedPlaceholder />
+              )}
             </div>
           </div>
           <div className="mt-12 border-t border-[#E8E4DC]" />

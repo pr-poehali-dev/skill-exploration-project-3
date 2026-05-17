@@ -23,8 +23,12 @@ export function ArticleCard({
       style={{ animationDelay: `${delay}ms` }}
       onClick={onClick}
     >
-      <div className="rounded-xl aspect-video mb-4 overflow-hidden transition-transform group-hover:scale-[1.02]">
-        <CardPlaceholder seed={article.id} />
+      <div className="rounded-xl aspect-video mb-4 overflow-hidden transition-transform group-hover:scale-[1.02] bg-[#F0EDE8]">
+        {article.cover ? (
+          <img src={article.cover} alt={article.title} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <CardPlaceholder seed={article.id} />
+        )}
       </div>
       <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{article.category}</span>
       <h3 className="font-cormorant text-xl font-semibold text-[#1A1A1A] leading-snug mt-1.5 mb-2 group-hover:text-[#4A4A48] transition-colors line-clamp-2">

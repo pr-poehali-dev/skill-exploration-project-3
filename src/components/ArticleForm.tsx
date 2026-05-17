@@ -10,6 +10,7 @@ import { useCategories } from "@/store/categoriesStore";
 import { slugify } from "@/components/article-form/articleFormUtils";
 import ArticleMetaFields from "@/components/article-form/ArticleMetaFields";
 import ArticleSeoSection from "@/components/article-form/ArticleSeoSection";
+import PosterField from "@/components/article-form/PosterField";
 
 interface Props {
   mode: "create" | "edit";
@@ -36,6 +37,7 @@ export default function ArticleForm({ mode, article }: Props) {
   const [seo, setSeo] = useState<ArticleSEO>(article?.seo ?? {});
   const [sourceUrl, setSourceUrl] = useState(article?.source?.url ?? "");
   const [sourceTitle, setSourceTitle] = useState(article?.source?.title ?? "");
+  const [cover, setCover] = useState<string | undefined>(article?.cover);
 
   const initialData: EditorData =
     article?.editorData ?? (article?.content ? markdownToEditor(article.content) : { blocks: [] });
@@ -88,6 +90,7 @@ export default function ArticleForm({ mode, article }: Props) {
           editorData: data,
           seo: cleanSeo,
           source: cleanSource,
+          cover,
         });
         navigate(`/article/${created.id}`);
       } else if (article) {
@@ -102,6 +105,7 @@ export default function ArticleForm({ mode, article }: Props) {
           editorData: data,
           seo: cleanSeo,
           source: cleanSource,
+          cover,
         });
         navigate(`/article/${article.id}`);
       }
@@ -140,6 +144,8 @@ export default function ArticleForm({ mode, article }: Props) {
 
       <main className="max-w-3xl mx-auto px-6 py-12 animate-fade-in">
         <div className="space-y-8">
+          <PosterField cover={cover} setCover={setCover} />
+
           <ArticleMetaFields
             categories={CATEGORIES}
             category={category}

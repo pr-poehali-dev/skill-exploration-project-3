@@ -11,6 +11,7 @@ import AdminCategories from "@/components/admin/AdminCategories";
 import AdminSEO from "@/components/admin/AdminSEO";
 import AdminTheme from "@/components/admin/AdminTheme";
 import AdminRoles from "@/components/admin/AdminRoles";
+import AdminPages from "@/components/admin/AdminPages";
 
 const TABS = [
   { key: "overview", label: "Обзор", icon: "LayoutDashboard" },
@@ -18,6 +19,7 @@ const TABS = [
   { key: "roles", label: "Роли", icon: "ShieldCheck" },
   { key: "articles", label: "Статьи", icon: "FileText" },
   { key: "categories", label: "Категории", icon: "Folder" },
+  { key: "pages", label: "Страницы", icon: "FileEdit" },
   { key: "theme", label: "Тема", icon: "Palette" },
   { key: "seo", label: "SEO и сайт", icon: "Search" },
 ];
@@ -27,7 +29,7 @@ export default function AdminPage() {
   const user = useAuth();
   const users = useUsers();
   const articles = useArticles();
-  const [tab, setTab] = useState<"users" | "articles" | "overview" | "seo" | "categories" | "theme" | "roles">("overview");
+  const [tab, setTab] = useState<"users" | "articles" | "overview" | "seo" | "categories" | "theme" | "roles" | "pages">("overview");
   const site = useSiteSettings();
   const [siteSaved, setSiteSaved] = useState(false);
   const [search, setSearch] = useState("");
@@ -114,6 +116,8 @@ export default function AdminPage() {
         {tab === "articles" && <AdminArticles articles={articles} />}
 
         {tab === "categories" && <AdminCategories />}
+
+        {tab === "pages" && <AdminPages />}
 
         {tab === "roles" && <AdminRoles />}
 

@@ -19,7 +19,6 @@ import CopyrightPage from "./pages/CopyrightPage";
 import AboutPage from "./pages/AboutPage";
 import HelpPage from "./pages/HelpPage";
 import RequireAuth from "./components/RequireAuth";
-import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,8 +29,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
+        <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/article/:id" element={<ArticlePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -90,8 +88,7 @@ const App = () => (
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

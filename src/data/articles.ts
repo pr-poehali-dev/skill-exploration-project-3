@@ -41,6 +41,8 @@ export interface Article {
   seo?: ArticleSEO;
   views?: number;
   source?: ArticleSource;
+  /** Обложка статьи (data:URL или внешний URL) */
+  cover?: string;
 }
 
 export const ARTICLES: Article[] = [

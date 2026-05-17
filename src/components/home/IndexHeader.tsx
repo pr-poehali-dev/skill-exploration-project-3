@@ -49,7 +49,19 @@ export default function IndexHeader({
 
   return (
     <header className="sticky top-0 z-40 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4 pl-16 lg:pl-6">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
+        <button
+          onClick={() => { setActiveNav("Главная"); setActiveCategory(null); setSearchValue(""); navigate("/"); }}
+          className="flex items-center gap-2 shrink-0 group"
+        >
+          <div className="w-8 h-8 bg-[#1A1A1A] rounded-sm flex items-center justify-center transition-transform group-hover:scale-105">
+            <span className="text-white font-cormorant font-semibold text-lg leading-none select-none">М</span>
+          </div>
+          <span className="font-cormorant font-semibold text-xl text-[#1A1A1A] hidden sm:block tracking-tight">
+            Медиум
+          </span>
+        </button>
+
         <div className="flex-1 flex justify-center mx-2 relative">
           <div className="w-full max-w-[512px]">
           <div
@@ -155,6 +167,12 @@ export default function IndexHeader({
                       <MenuItem icon="Shield" label="Админ-панель" onClick={() => { setProfileOpen(false); navigate("/admin"); }} />
                     )}
 
+                    <div className="border-t border-[#F0EDE8] my-1" />
+                    <MenuItem icon="ScrollText" label="Правила" onClick={() => { setProfileOpen(false); navigate("/rules"); }} />
+                    <MenuItem icon="Copyright" label="Копирайт" onClick={() => { setProfileOpen(false); navigate("/copyright"); }} />
+                    <MenuItem icon="Info" label="О проекте" onClick={() => { setProfileOpen(false); navigate("/about"); }} />
+                    <MenuItem icon="LifeBuoy" label="Помощь" onClick={() => { setProfileOpen(false); navigate("/help"); }} />
+
                     <div className="border-t border-[#F0EDE8] mt-1 px-4 py-2.5 flex items-center gap-3">
                       <Icon name={theme.mode === "dark" ? "Moon" : "Sun"} size={14} className="text-[#9A9690]" />
                       <span className="flex-1 text-sm text-[#1A1A1A]">
@@ -189,6 +207,11 @@ export default function IndexHeader({
                   <>
                     <MenuItem icon="LogIn" label="Войти" onClick={() => { setProfileOpen(false); navigate("/login"); }} />
                     <MenuItem icon="UserPlus" label="Зарегистрироваться" onClick={() => { setProfileOpen(false); navigate("/register"); }} />
+                    <div className="border-t border-[#F0EDE8] my-1" />
+                    <MenuItem icon="ScrollText" label="Правила" onClick={() => { setProfileOpen(false); navigate("/rules"); }} />
+                    <MenuItem icon="Copyright" label="Копирайт" onClick={() => { setProfileOpen(false); navigate("/copyright"); }} />
+                    <MenuItem icon="Info" label="О проекте" onClick={() => { setProfileOpen(false); navigate("/about"); }} />
+                    <MenuItem icon="LifeBuoy" label="Помощь" onClick={() => { setProfileOpen(false); navigate("/help"); }} />
                   </>
                 )}
               </div>

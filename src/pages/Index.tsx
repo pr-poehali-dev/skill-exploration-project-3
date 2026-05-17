@@ -86,7 +86,7 @@ export default function Index() {
     : articles;
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAFAF8] font-golos">
       <IndexHeader
         navItems={NAV_ITEMS}
         activeNav={activeNav}
@@ -172,6 +172,6 @@ export default function Index() {
           </div>
         )}
       </main>
-    </>
+    </div>
   );
 }
