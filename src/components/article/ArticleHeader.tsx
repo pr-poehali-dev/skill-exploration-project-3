@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import type { Article } from "@/data/articles";
 import { deleteArticle, useBookmarks } from "@/store/articlesStore";
+import { useAuth } from "@/store/authStore";
+import SendToChatModal from "./SendToChatModal";
 
 interface Props {
   article: Article;
@@ -15,6 +18,8 @@ export default function ArticleHeader({ article, progress, canEdit, canDelete, g
   const navigate = useNavigate();
   const { bookmarks, toggle } = useBookmarks();
   const isBookmarked = bookmarks.includes(article.id);
+  const user = useAuth();
+  const [shareOpen, setShareOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
@@ -76,6 +81,16 @@ export default function ArticleHeader({ article, progress, canEdit, canDelete, g
             <Icon name={isBookmarked ? "BookmarkCheck" : "Bookmark"} size={15} />
             <span className="hidden sm:inline">{isBookmarked ? "Сохранено" : "Сохранить"}</span>
           </button>
+          {user && (
+            <button
+              onClick={() => setShareOpen(true)}
+              className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
+              title="Отправить в чат"
+            >
+              <Icon name="Send" size={15} />
+              <span className="hidden sm:inline">В чат</span>
+            </button>
+          )}
           <button
             onClick={() => {
               if (navigator.share) {
@@ -91,6 +106,7 @@ export default function ArticleHeader({ article, progress, canEdit, canDelete, g
           </button>
         </div>
       </div>
+      {shareOpen && <SendToChatModal article={article} onClose={() => setShareOpen(false)} />}
     </header>
   );
 }

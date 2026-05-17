@@ -7,6 +7,10 @@ import {
   useConversation,
   sendMessage,
   markConversationRead,
+  toggleReaction,
+  REACTION_EMOJIS,
+  type Message,
+  type MessageArticleRef,
 } from "@/store/messagesStore";
 
 function formatTime(ts: number) {
@@ -56,10 +60,26 @@ export default function MessengerPage() {
       )
     : otherUsers;
 
+  // Pending article-to-share from sessionStorage
+  const [pendingArticle, setPendingArticle] = useState<MessageArticleRef | null>(null);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("share_article");
+      if (raw) {
+        setPendingArticle(JSON.parse(raw) as MessageArticleRef);
+        sessionStorage.removeItem("share_article");
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }, []);
+
   const handleSend = () => {
-    if (!me || !activeId || !text.trim()) return;
-    sendMessage(me.id, activeId, text);
+    if (!me || !activeId) return;
+    if (!text.trim() && !pendingArticle) return;
+    sendMessage(me.id, activeId, text, pendingArticle || undefined);
     setText("");
+    setPendingArticle(null);
   };
 
   const openChat = (uid: number) => {
@@ -162,9 +182,14 @@ export default function MessengerPage() {
                         <p className="text-sm font-medium text-[#1A1A1A] truncate">{p.name}</p>
                         <span className="text-[10px] text-[#9A9690] shrink-0">{formatTime(c.lastMessage.createdAt)}</span>
                       </div>
-                      <p className="text-xs text-[#7A7670] truncate mt-0.5">
+                      <p className="text-xs text-[#7A7670] truncate mt-0.5 flex items-center gap-1">
                         {c.lastMessage.fromId === me?.id && <span className="text-[#9A9690]">Вы: </span>}
-                        {c.lastMessage.text}
+                        {c.lastMessage.article && (
+                          <Icon name="FileText" size={11} className="text-[#9A9690] shrink-0" />
+                        )}
+                        <span className="truncate">
+                          {c.lastMessage.text || (c.lastMessage.article ? c.lastMessage.article.title : "")}
+                        </span>
                       </p>
                     </div>
                     {c.unread > 0 && (
@@ -211,25 +236,15 @@ export default function MessengerPage() {
                     const prev = conversation[idx - 1];
                     const showAvatar = !mine && (!prev || prev.fromId !== m.fromId);
                     return (
-                      <div key={m.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-                        {!mine && (
-                          <div className={showAvatar ? "" : "opacity-0"}>
-                            <Avatar name={partner.name} avatar={partner.avatar} size="sm" />
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-[75%] px-4 py-2 rounded-2xl ${
-                            mine
-                              ? "bg-[#1A1A1A] text-white rounded-br-sm"
-                              : "bg-white border border-[#E8E4DC] text-[#1A1A1A] rounded-bl-sm"
-                          }`}
-                        >
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{m.text}</p>
-                          <p className={`text-[10px] mt-1 ${mine ? "text-white/60" : "text-[#9A9690]"}`}>
-                            {formatTime(m.createdAt)}
-                          </p>
-                        </div>
-                      </div>
+                      <MessageBubble
+                        key={m.id}
+                        message={m}
+                        mine={mine}
+                        partner={partner}
+                        showAvatar={showAvatar}
+                        meId={me?.id}
+                        onOpenArticle={(id) => navigate(`/article/${id}`)}
+                      />
                     );
                   })}
                   <div ref={messagesEndRef} />
@@ -237,6 +252,22 @@ export default function MessengerPage() {
 
                 {/* Input */}
                 <div className="p-4 border-t border-[#E8E4DC]">
+                  {pendingArticle && (
+                    <div className="mb-2 flex items-center gap-3 bg-[#FAFAF8] border border-[#E8E4DC] rounded-xl p-2 animate-slide-down">
+                      <Icon name="FileText" size={14} className="text-[#9A9690] shrink-0 ml-1" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-widest text-[#9A9690]">Прикреплена статья</p>
+                        <p className="text-xs font-medium text-[#1A1A1A] truncate">{pendingArticle.title}</p>
+                      </div>
+                      <button
+                        onClick={() => setPendingArticle(null)}
+                        className="text-[#9A9690] hover:text-red-500 transition-colors p-1"
+                        title="Убрать"
+                      >
+                        <Icon name="X" size={13} />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-end gap-2 bg-[#FAFAF8] border border-[#E8E4DC] rounded-2xl p-2 focus-within:border-[#1A1A1A] transition-colors">
                     <textarea
                       value={text}
@@ -247,14 +278,14 @@ export default function MessengerPage() {
                           handleSend();
                         }
                       }}
-                      placeholder="Напишите сообщение..."
+                      placeholder={pendingArticle ? "Добавьте комментарий..." : "Напишите сообщение..."}
                       rows={1}
                       className="flex-1 bg-transparent outline-none text-sm text-[#1A1A1A] placeholder:text-[#B8B4AC] resize-none px-2 py-1.5 max-h-32"
                       style={{ minHeight: "1.75rem" }}
                     />
                     <button
                       onClick={handleSend}
-                      disabled={!text.trim()}
+                      disabled={!text.trim() && !pendingArticle}
                       className="bg-[#1A1A1A] text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#333] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                     >
                       <Icon name="Send" size={14} />
@@ -292,6 +323,140 @@ function Avatar({ name, size = "md", avatar }: { name: string; size?: "sm" | "md
       ) : (
         <span className="font-cormorant font-semibold text-[#4A4A48]">{name[0].toUpperCase()}</span>
       )}
+    </div>
+  );
+}
+
+function MessageBubble({
+  message,
+  mine,
+  partner,
+  showAvatar,
+  meId,
+  onOpenArticle,
+}: {
+  message: Message;
+  mine: boolean;
+  partner: { name: string; avatar?: string };
+  showAvatar: boolean;
+  meId: number | undefined;
+  onOpenArticle: (id: number) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const reactions = message.reactions || {};
+  const reactionEntries = Object.entries(reactions);
+
+  return (
+    <div className={`flex items-end gap-2 group/msg ${mine ? "justify-end" : "justify-start"}`}>
+      {!mine && (
+        <div className={showAvatar ? "" : "opacity-0"}>
+          <Avatar name={partner.name} avatar={partner.avatar} size="sm" />
+        </div>
+      )}
+      <div className="relative max-w-[75%]">
+        <div
+          className={`px-4 py-2 rounded-2xl ${
+            mine
+              ? "bg-[#1A1A1A] text-white rounded-br-sm"
+              : "bg-white border border-[#E8E4DC] text-[#1A1A1A] rounded-bl-sm"
+          }`}
+        >
+          {message.article && (
+            <button
+              onClick={() => onOpenArticle(message.article!.articleId)}
+              className={`block w-full text-left mb-2 p-2.5 rounded-xl border transition-colors ${
+                mine
+                  ? "border-white/15 bg-white/10 hover:bg-white/15"
+                  : "border-[#E8E4DC] bg-[#FAFAF8] hover:bg-[#F5F3EF]"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Icon name="FileText" size={11} className={mine ? "text-white/60" : "text-[#9A9690]"} />
+                <span className={`text-[9px] uppercase tracking-widest ${mine ? "text-white/60" : "text-[#7A7670]"}`}>
+                  {message.article.category}
+                </span>
+                <span className={`text-[9px] ${mine ? "text-white/40" : "text-[#B8B4AC]"}`}>·</span>
+                <span className={`text-[9px] ${mine ? "text-white/60" : "text-[#9A9690]"}`}>
+                  {message.article.readTime}
+                </span>
+              </div>
+              <p
+                className={`font-cormorant text-sm font-semibold leading-snug line-clamp-2 mb-1 ${
+                  mine ? "text-white" : "text-[#1A1A1A]"
+                }`}
+              >
+                {message.article.title}
+              </p>
+              <p
+                className={`text-[11px] leading-relaxed line-clamp-2 ${
+                  mine ? "text-white/70" : "text-[#7A7670]"
+                }`}
+              >
+                {message.article.excerpt}
+              </p>
+            </button>
+          )}
+          {message.text && (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
+          )}
+          <p className={`text-[10px] mt-1 ${mine ? "text-white/60" : "text-[#9A9690]"}`}>
+            {new Date(message.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+          </p>
+        </div>
+
+        {/* Reactions row */}
+        {reactionEntries.length > 0 && (
+          <div className={`flex flex-wrap gap-1 mt-1 ${mine ? "justify-end" : "justify-start"}`}>
+            {reactionEntries.map(([emoji, userIds]) => {
+              const mineReacted = meId !== undefined && userIds.includes(meId);
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => meId && toggleReaction(message.id, meId, emoji)}
+                  className={`text-xs px-2 py-0.5 rounded-full border flex items-center gap-1 transition-colors ${
+                    mineReacted
+                      ? "bg-[#1A1A1A] text-white border-[#1A1A1A]"
+                      : "bg-white border-[#E8E4DC] text-[#4A4A48] hover:border-[#C8C4BC]"
+                  }`}
+                >
+                  <span>{emoji}</span>
+                  <span className="text-[10px] font-medium">{userIds.length}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Reaction picker trigger */}
+        <button
+          onClick={() => setPickerOpen((v) => !v)}
+          className={`absolute -top-3 ${mine ? "-left-3" : "-right-3"} w-7 h-7 bg-white border border-[#E8E4DC] rounded-full items-center justify-center text-sm shadow-sm transition-opacity ${
+            pickerOpen ? "flex" : "hidden group-hover/msg:flex"
+          } hover:bg-[#F5F3EF]`}
+          title="Реакция"
+        >
+          <Icon name="SmilePlus" size={13} className="text-[#6A6660]" />
+        </button>
+
+        {pickerOpen && (
+          <div
+            className={`absolute z-10 -top-12 ${mine ? "right-0" : "left-0"} bg-white border border-[#E8E4DC] rounded-full shadow-lg px-2 py-1.5 flex items-center gap-1 animate-slide-down`}
+          >
+            {REACTION_EMOJIS.map((e) => (
+              <button
+                key={e}
+                onClick={() => {
+                  if (meId) toggleReaction(message.id, meId, e);
+                  setPickerOpen(false);
+                }}
+                className="text-lg hover:scale-125 transition-transform"
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

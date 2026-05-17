@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { addNotification } from "./notificationsStore";
 import { listUsers } from "./authStore";
 
+export interface MessageArticleRef {
+  articleId: number;
+  title: string;
+  excerpt: string;
+  category: string;
+  readTime: string;
+}
+
 export interface Message {
   id: number;
   fromId: number;
@@ -9,7 +17,11 @@ export interface Message {
   text: string;
   createdAt: number;
   read: boolean;
+  article?: MessageArticleRef;
+  reactions?: Record<string, number[]>; // emoji -> userIds
 }
+
+export const REACTION_EMOJIS = ["👍", "❤️", "🔥", "😂", "😮", "😢"];
 
 const KEY = "blog_messages";
 
@@ -34,7 +46,12 @@ export function getAllMessages(): Message[] {
   return _messages;
 }
 
-export function sendMessage(fromId: number, toId: number, text: string): Message {
+export function sendMessage(
+  fromId: number,
+  toId: number,
+  text: string,
+  article?: MessageArticleRef
+): Message {
   const msg: Message = {
     id: Date.now() + Math.random(),
     fromId,
@@ -42,21 +59,43 @@ export function sendMessage(fromId: number, toId: number, text: string): Message
     text: text.trim(),
     createdAt: Date.now(),
     read: false,
+    article,
   };
   _messages = [..._messages, msg];
   save(_messages);
 
   // Notify recipient
   const sender = listUsers().find((u) => u.id === fromId);
+  const previewText = article
+    ? `📎 ${article.title}`
+    : text.trim().slice(0, 80);
   addNotification({
     userId: toId,
     type: "message",
     title: sender ? `Сообщение от ${sender.name}` : "Новое сообщение",
-    text: text.trim().slice(0, 80),
+    text: previewText,
     link: `/messages?u=${fromId}`,
   });
 
   return msg;
+}
+
+export function toggleReaction(messageId: number, userId: number, emoji: string) {
+  _messages = _messages.map((m) => {
+    if (m.id !== messageId) return m;
+    const reactions = { ...(m.reactions || {}) };
+    const list = reactions[emoji] ? [...reactions[emoji]] : [];
+    const idx = list.indexOf(userId);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+      if (list.length === 0) delete reactions[emoji];
+      else reactions[emoji] = list;
+    } else {
+      reactions[emoji] = [...list, userId];
+    }
+    return { ...m, reactions };
+  });
+  save(_messages);
 }
 
 export function markConversationRead(currentId: number, partnerId: number) {
