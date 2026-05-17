@@ -8,7 +8,7 @@ import {
   type Role,
   type User,
 } from "@/store/authStore";
-import { SYSTEM_ROLES, useRoles, getRoleLabel, getRoleColor, getRoleTextColor } from "@/store/rolesStore";
+import { useCustomRoles, getRoleById } from "@/store/customRolesStore";
 
 interface Props {
   users: User[];
@@ -20,7 +20,7 @@ interface Props {
 
 export default function AdminUsers({ users, filteredUsers, currentUser, search, onSearchChange }: Props) {
   const navigate = useNavigate();
-  useRoles(); // re-render when role labels/colors change
+  const allRoles = useCustomRoles();
   const [creating, setCreating] = useState(false);
 
   return (
@@ -62,8 +62,9 @@ export default function AdminUsers({ users, filteredUsers, currentUser, search, 
           </thead>
           <tbody>
             {filteredUsers.map((u) => {
-              const color = getRoleColor(u.role);
-              const textColor = getRoleTextColor(u.role);
+              const userRole = getRoleById(u.role);
+              const color = userRole?.color || "#F5F3EF";
+              const textColor = userRole?.textColor || "#1A1A1A";
               return (
                 <tr key={u.id} className="border-b border-[#F0EDE8] last:border-0 hover:bg-[#FAFAF8] transition-colors">
                   <td className="px-5 py-4">
@@ -92,9 +93,9 @@ export default function AdminUsers({ users, filteredUsers, currentUser, search, 
                       className="text-xs font-medium uppercase tracking-widest px-3 py-1.5 rounded-full border-0 outline-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                       style={{ background: color, color: textColor }}
                     >
-                      {SYSTEM_ROLES.map((r) => (
-                        <option key={r} value={r} className="text-[#1A1A1A] bg-white normal-case">
-                          {getRoleLabel(r)}
+                      {allRoles.map((r) => (
+                        <option key={r.id} value={r.id} className="text-[#1A1A1A] bg-white normal-case">
+                          {r.name}
                         </option>
                       ))}
                     </select>
@@ -144,6 +145,7 @@ export default function AdminUsers({ users, filteredUsers, currentUser, search, 
 }
 
 function CreateUserModal({ onClose }: { onClose: () => void }) {
+  const allRoles = useCustomRoles();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -183,22 +185,18 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
               Роль
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {SYSTEM_ROLES.map((r) => {
-                const active = role === r;
+              {allRoles.map((r) => {
+                const active = role === r.id;
                 return (
                   <button
-                    key={r}
-                    onClick={() => setRole(r)}
+                    key={r.id}
+                    onClick={() => setRole(r.id)}
                     className={`text-xs font-medium uppercase tracking-widest px-3 py-2 rounded-lg border transition-all ${
                       active ? "border-[#1A1A1A]" : "border-[#E8E4DC] hover:border-[#C8C4BC]"
                     }`}
-                    style={
-                      active
-                        ? { background: getRoleColor(r), color: getRoleTextColor(r) }
-                        : undefined
-                    }
+                    style={active ? { background: r.color, color: r.textColor } : undefined}
                   >
-                    {getRoleLabel(r)}
+                    {r.name}
                   </button>
                 );
               })}

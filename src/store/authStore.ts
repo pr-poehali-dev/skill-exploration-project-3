@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { addNotification } from "./notificationsStore";
+import { hasPermission, getRoleById } from "./customRolesStore";
 
-export type Role = "user" | "moderator" | "editor" | "admin";
+// Role теперь — id роли (системной или пользовательской)
+export type Role = string;
 
 export interface User {
   id: number;
@@ -215,27 +217,38 @@ export function useAuth() {
 
 // Permission helpers
 export const canCreateArticle = (u: User | null) =>
-  !!u && (u.role === "editor" || u.role === "moderator" || u.role === "admin");
+  !!u && hasPermission(u.role, "create_article");
 
 export const canEditArticle = (u: User | null, authorId?: number) => {
   if (!u) return false;
-  if (u.role === "admin" || u.role === "moderator") return true;
-  if (u.role === "editor" && authorId === u.id) return true;
+  if (hasPermission(u.role, "edit_any_article")) return true;
+  if (hasPermission(u.role, "edit_own_article") && authorId === u.id) return true;
   return false;
 };
 
 export const canDeleteArticle = (u: User | null, authorId?: number) => {
   if (!u) return false;
-  if (u.role === "admin" || u.role === "moderator") return true;
-  if (u.role === "editor" && authorId === u.id) return true;
+  if (hasPermission(u.role, "delete_any_article")) return true;
+  if (hasPermission(u.role, "edit_own_article") && authorId === u.id) return true;
   return false;
 };
 
-export const isAdmin = (u: User | null) => u?.role === "admin";
-
-export const ROLE_LABELS: Record<Role, string> = {
-  user: "Пользователь",
-  editor: "Редактор",
-  moderator: "Модератор",
-  admin: "Администратор",
+// Админка доступна, если есть хотя бы одно management-право
+export const isAdmin = (u: User | null) => {
+  if (!u) return false;
+  return (
+    hasPermission(u.role, "manage_users") ||
+    hasPermission(u.role, "manage_categories") ||
+    hasPermission(u.role, "manage_seo") ||
+    hasPermission(u.role, "manage_theme") ||
+    hasPermission(u.role, "manage_roles")
+  );
 };
+
+// Прокси-объект: ROLE_LABELS[role] возвращает актуальное имя роли
+export const ROLE_LABELS = new Proxy({} as Record<Role, string>, {
+  get(_target, prop: string) {
+    const role = getRoleById(prop);
+    return role?.name || prop;
+  },
+});
