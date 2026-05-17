@@ -10,6 +10,12 @@ export interface MessageArticleRef {
   readTime: string;
 }
 
+export interface ForwardedInfo {
+  originalAuthorId: number;
+  originalAuthorName: string;
+  originalCreatedAt: number;
+}
+
 export interface Message {
   id: number;
   fromId: number;
@@ -19,6 +25,7 @@ export interface Message {
   read: boolean;
   article?: MessageArticleRef;
   reactions?: Record<string, number[]>; // emoji -> userIds
+  forwardedFrom?: ForwardedInfo;
 }
 
 export const REACTION_EMOJIS = ["👍", "❤️", "🔥", "😂", "😮", "😢"];
@@ -74,6 +81,61 @@ export function sendMessage(
     type: "message",
     title: sender ? `Сообщение от ${sender.name}` : "Новое сообщение",
     text: previewText,
+    link: `/messages?u=${fromId}`,
+  });
+
+  return msg;
+}
+
+export function forwardMessage(
+  sourceMessageId: number,
+  fromId: number,
+  toId: number,
+  comment?: string
+): Message | null {
+  const source = _messages.find((m) => m.id === sourceMessageId);
+  if (!source) return null;
+
+  const originalAuthor = listUsers().find((u) => u.id === source.fromId);
+  const forwarded: ForwardedInfo = source.forwardedFrom || {
+    originalAuthorId: source.fromId,
+    originalAuthorName: originalAuthor?.name || "Пользователь",
+    originalCreatedAt: source.createdAt,
+  };
+
+  const msg: Message = {
+    id: Date.now() + Math.random(),
+    fromId,
+    toId,
+    text: (comment || "").trim(),
+    createdAt: Date.now(),
+    read: false,
+    article: source.article,
+    forwardedFrom: forwarded,
+  };
+
+  // Forwarded body text — храним отдельным сообщением сразу за переходным комментарием,
+  // чтобы не смешивать комментарий и оригинал
+  const forwardedBody: Message = {
+    id: Date.now() + Math.random() + 1,
+    fromId,
+    toId,
+    text: source.text,
+    createdAt: Date.now() + 1,
+    read: false,
+    article: undefined, // карточка уже прикреплена выше
+    forwardedFrom: forwarded,
+  };
+
+  _messages = [..._messages, msg, ...(source.text ? [forwardedBody] : [])];
+  save(_messages);
+
+  const sender = listUsers().find((u) => u.id === fromId);
+  addNotification({
+    userId: toId,
+    type: "message",
+    title: sender ? `Пересланное от ${sender.name}` : "Пересланное сообщение",
+    text: source.text ? source.text.slice(0, 80) : source.article ? `📎 ${source.article.title}` : "",
     link: `/messages?u=${fromId}`,
   });
 

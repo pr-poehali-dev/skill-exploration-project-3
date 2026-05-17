@@ -12,6 +12,7 @@ import {
   type Message,
   type MessageArticleRef,
 } from "@/store/messagesStore";
+import ForwardMessageModal from "@/components/messenger/ForwardMessageModal";
 
 function formatTime(ts: number) {
   const d = new Date(ts);
@@ -343,8 +344,10 @@ function MessageBubble({
   onOpenArticle: (id: number) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
   const reactions = message.reactions || {};
   const reactionEntries = Object.entries(reactions);
+  const forwarded = message.forwardedFrom;
 
   return (
     <div className={`flex items-end gap-2 group/msg ${mine ? "justify-end" : "justify-start"}`}>
@@ -361,6 +364,22 @@ function MessageBubble({
               : "bg-white border border-[#E8E4DC] text-[#1A1A1A] rounded-bl-sm"
           }`}
         >
+          {forwarded && (
+            <div
+              className={`flex items-center gap-1.5 mb-2 pb-1.5 border-b ${
+                mine ? "border-white/15" : "border-[#F0EDE8]"
+              }`}
+            >
+              <Icon
+                name="CornerUpRight"
+                size={10}
+                className={mine ? "text-white/60" : "text-[#9A9690]"}
+              />
+              <span className={`text-[10px] uppercase tracking-widest ${mine ? "text-white/60" : "text-[#9A9690]"}`}>
+                Пересланное · {forwarded.originalAuthorName}
+              </span>
+            </div>
+          )}
           {message.article && (
             <button
               onClick={() => onOpenArticle(message.article!.articleId)}
@@ -427,16 +446,27 @@ function MessageBubble({
           </div>
         )}
 
-        {/* Reaction picker trigger */}
-        <button
-          onClick={() => setPickerOpen((v) => !v)}
-          className={`absolute -top-3 ${mine ? "-left-3" : "-right-3"} w-7 h-7 bg-white border border-[#E8E4DC] rounded-full items-center justify-center text-sm shadow-sm transition-opacity ${
-            pickerOpen ? "flex" : "hidden group-hover/msg:flex"
-          } hover:bg-[#F5F3EF]`}
-          title="Реакция"
+        {/* Action buttons (reaction + forward) */}
+        <div
+          className={`absolute -top-3 ${mine ? "-left-3" : "-right-3"} flex items-center gap-1 transition-opacity ${
+            pickerOpen ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100"
+          }`}
         >
-          <Icon name="SmilePlus" size={13} className="text-[#6A6660]" />
-        </button>
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="w-7 h-7 bg-white border border-[#E8E4DC] rounded-full flex items-center justify-center text-sm shadow-sm hover:bg-[#F5F3EF]"
+            title="Реакция"
+          >
+            <Icon name="SmilePlus" size={13} className="text-[#6A6660]" />
+          </button>
+          <button
+            onClick={() => setForwardOpen(true)}
+            className="w-7 h-7 bg-white border border-[#E8E4DC] rounded-full flex items-center justify-center text-sm shadow-sm hover:bg-[#F5F3EF]"
+            title="Переслать"
+          >
+            <Icon name="CornerUpRight" size={13} className="text-[#6A6660]" />
+          </button>
+        </div>
 
         {pickerOpen && (
           <div
@@ -455,6 +485,10 @@ function MessageBubble({
               </button>
             ))}
           </div>
+        )}
+
+        {forwardOpen && (
+          <ForwardMessageModal message={message} onClose={() => setForwardOpen(false)} />
         )}
       </div>
     </div>
