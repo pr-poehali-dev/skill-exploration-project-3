@@ -41,15 +41,19 @@ export function getArticles(): Article[] {
   return _articles;
 }
 
-export function addArticle(article: Omit<Article, "id" | "date" | "featured">): Article {
+export function addArticle(article: Omit<Article, "id" | "date" | "featured"> & { featured?: boolean }): Article {
   const now = new Date();
   const formatted = now.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
   const newArticle: Article = {
     ...article,
     id: Date.now(),
     date: formatted,
-    featured: false,
+    featured: article.featured ?? false,
   };
+  // Если статья закреплена на главной — снимаем флаг с предыдущих
+  if (newArticle.featured) {
+    _articles = _articles.map((a) => (a.featured ? { ...a, featured: false } : a));
+  }
   _articles = [newArticle, ..._articles];
   saveArticles(_articles);
   window.dispatchEvent(new Event("articles-updated"));
@@ -74,7 +78,14 @@ export function getArticleById(id: number): Article | undefined {
 }
 
 export function updateArticle(id: number, patch: Partial<Article>) {
-  _articles = _articles.map((a) => (a.id === id ? { ...a, ...patch } : a));
+  // Если делаем статью главной — снимаем флаг с остальных
+  if (patch.featured === true) {
+    _articles = _articles.map((a) =>
+      a.id === id ? { ...a, ...patch } : a.featured ? { ...a, featured: false } : a
+    );
+  } else {
+    _articles = _articles.map((a) => (a.id === id ? { ...a, ...patch } : a));
+  }
   saveArticles(_articles);
   window.dispatchEvent(new Event("articles-updated"));
 }

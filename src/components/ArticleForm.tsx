@@ -38,6 +38,7 @@ export default function ArticleForm({ mode, article }: Props) {
   const [sourceUrl, setSourceUrl] = useState(article?.source?.url ?? "");
   const [sourceTitle, setSourceTitle] = useState(article?.source?.title ?? "");
   const [cover, setCover] = useState<string | undefined>(article?.cover);
+  const [featured, setFeatured] = useState<boolean>(article?.featured ?? false);
 
   const initialData: EditorData =
     article?.editorData ?? (article?.content ? markdownToEditor(article.content) : { blocks: [] });
@@ -91,6 +92,7 @@ export default function ArticleForm({ mode, article }: Props) {
           seo: cleanSeo,
           source: cleanSource,
           cover,
+          featured,
         });
         navigate(`/article/${created.id}`);
       } else if (article) {
@@ -106,6 +108,7 @@ export default function ArticleForm({ mode, article }: Props) {
           seo: cleanSeo,
           source: cleanSource,
           cover,
+          featured,
         });
         navigate(`/article/${article.id}`);
       }
@@ -145,6 +148,33 @@ export default function ArticleForm({ mode, article }: Props) {
       <main className="max-w-3xl mx-auto px-6 py-12 animate-fade-in">
         <div className="space-y-8">
           <PosterField cover={cover} setCover={setCover} title={title} excerpt={excerpt} category={category} />
+
+          <label className="flex items-start gap-4 p-5 rounded-2xl bg-white border border-[#E8E4DC] hover:border-[#C8C4BC] transition-colors cursor-pointer">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={featured}
+              onClick={() => setFeatured((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 ${
+                featured ? "bg-[#1A1A1A]" : "bg-[#E0DDD8]"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                  featured ? "translate-x-[22px]" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+            <div className="flex-1" onClick={() => setFeatured((v) => !v)}>
+              <div className="flex items-center gap-2 mb-1">
+                <Icon name="Star" size={14} className="text-[#1A1A1A]" />
+                <span className="text-sm font-medium text-[#1A1A1A]">Закрепить на главной</span>
+              </div>
+              <p className="text-xs text-[#9A9690] leading-relaxed">
+                Статья будет показана большим баннером в начале главной страницы. Закреплена может быть только одна статья — предыдущая «главная» будет снята автоматически.
+              </p>
+            </div>
+          </label>
 
           <ArticleMetaFields
             categories={CATEGORIES}
