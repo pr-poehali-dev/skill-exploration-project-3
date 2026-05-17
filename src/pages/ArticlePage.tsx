@@ -120,7 +120,14 @@ export default function ArticlePage() {
     <div className="min-h-screen bg-[#FAFAF8] font-golos">
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
-        <div className="absolute bottom-0 left-0 h-[2px] bg-[#1A1A1A] transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
+        <div
+          className="absolute bottom-0 left-0 h-[1.5px] transition-all duration-150 ease-out"
+          style={{
+            width: `${progress}%`,
+            background: "linear-gradient(90deg, #555 0%, #1A1A1A 80%, #1A1A1A 100%)",
+            boxShadow: progress > 1 ? "2px 0 8px 1px rgba(26,26,26,0.18)" : "none",
+          }}
+        />
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center gap-4">
           <button
             onClick={goBack}
