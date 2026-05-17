@@ -100,6 +100,96 @@
   }
 }
 
+/* === Theme tokens (overridden by themeStore) === */
+:root {
+  --app-bg: #fafaf8;
+  --app-surface: #ffffff;
+  --app-text: #1a1a1a;
+  --app-muted: #9a9690;
+  --app-border: #e8e4dc;
+  --app-accent: #1a1a1a;
+  --app-radius: 16px;
+  --font-display: "Cormorant", serif;
+  --font-body: "Golos Text", sans-serif;
+}
+
+/* Map theme tokens to existing hard-coded colors used across the app */
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+}
+.font-cormorant {
+  font-family: var(--font-display) !important;
+}
+.font-golos {
+  font-family: var(--font-body) !important;
+}
+
+/* Recolor the main palette via attribute-selectors so existing components react */
+.bg-\[\#FAFAF8\],
+.bg-\[\#FAFAF8\]\/95 {
+  background-color: var(--app-bg) !important;
+}
+.bg-\[\#FAFAF8\]\/95 {
+  background-color: color-mix(
+    in srgb,
+    var(--app-bg) 95%,
+    transparent
+  ) !important;
+}
+.text-\[\#1A1A1A\] {
+  color: var(--app-text) !important;
+}
+.text-\[\#4A4A48\] {
+  color: color-mix(in srgb, var(--app-text) 78%, var(--app-muted)) !important;
+}
+.text-\[\#6A6660\] {
+  color: color-mix(in srgb, var(--app-text) 55%, var(--app-muted)) !important;
+}
+.text-\[\#7A7670\],
+.text-\[\#9A9690\] {
+  color: var(--app-muted) !important;
+}
+.text-\[\#B8B4AC\],
+.text-\[\#C8C4BC\] {
+  color: color-mix(in srgb, var(--app-muted) 60%, var(--app-bg)) !important;
+}
+.border-\[\#E8E4DC\],
+.border-\[\#E0DDD8\],
+.border-\[\#F0EDE8\] {
+  border-color: var(--app-border) !important;
+}
+.bg-white {
+  background-color: var(--app-surface) !important;
+}
+.bg-\[\#F5F3EF\],
+.bg-\[\#F0EDE8\],
+.bg-\[\#FAFAF6\],
+.bg-\[\#E8E4DC\] {
+  background-color: color-mix(
+    in srgb,
+    var(--app-surface) 70%,
+    var(--app-bg)
+  ) !important;
+}
+
+/* Accent — used for primary buttons */
+.bg-\[\#1A1A1A\] {
+  background-color: var(--app-accent) !important;
+}
+.bg-\[\#1A1A1A\]:hover,
+.hover\:bg-\[\#333\]:hover {
+  background-color: color-mix(in srgb, var(--app-accent) 80%, white) !important;
+}
+.border-\[\#1A1A1A\] {
+  border-color: var(--app-accent) !important;
+}
+
+/* Dark mode hint for autoflow elements */
+.dark-theme img.theme-invert {
+  filter: invert(1);
+}
+
 /* Editor.js overrides — minimalist look */
 .article-editor .codex-editor {
   font-family: "Golos Text", sans-serif;

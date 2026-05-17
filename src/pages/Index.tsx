@@ -8,6 +8,7 @@ import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/s
 import { useUnreadCount } from "@/store/messagesStore";
 import { useSEO } from "@/lib/useSEO";
 import NotificationBell from "@/components/NotificationBell";
+import { useTheme, updateTheme } from "@/store/themeStore";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
 
@@ -22,6 +23,7 @@ export default function Index() {
   const user = useAuth();
   const unread = useUnreadCount(user?.id);
   const CATEGORIES = useCategories();
+  const theme = useTheme();
   useSEO({ type: "website" });
 
   useEffect(() => {
@@ -110,6 +112,14 @@ export default function Index() {
                 Войти
               </button>
             )}
+
+            <button
+              onClick={() => updateTheme({ mode: theme.mode === "dark" ? "light" : "dark" })}
+              className="w-9 h-9 rounded-full border-2 border-[#E8E4DC] bg-white hover:border-[#C8C4BC] flex items-center justify-center transition-all"
+              title={theme.mode === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
+            >
+              <Icon name={theme.mode === "dark" ? "Sun" : "Moon"} size={15} className="text-[#6A6660]" />
+            </button>
 
             {user && <NotificationBell />}
 
