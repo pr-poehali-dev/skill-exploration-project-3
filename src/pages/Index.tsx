@@ -1,10 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { ARTICLES, CATEGORIES, type Article } from "@/data/articles";
+import { CATEGORIES, type Article } from "@/data/articles";
+import { useArticles } from "@/store/articlesStore";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
-const PROFILE_MENU = ["Мой профиль", "Закладки", "Настройки", "Выйти"];
+
+const PROFILE_MENU = [
+  { label: "Мой профиль", icon: "User", path: "/profile" },
+  { label: "Закладки", icon: "Bookmark", path: "/bookmarks" },
+  { label: "Написать статью", icon: "PenLine", path: "/new" },
+];
 
 export default function Index() {
   const [activeNav, setActiveNav] = useState("Главная");
@@ -24,12 +30,13 @@ export default function Index() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const featured = ARTICLES.find((a) => a.featured);
-  const rest = ARTICLES.filter((a) => !a.featured);
+  const articles = useArticles();
+  const featured = articles.find((a) => a.featured);
+  const rest = articles.filter((a) => !a.featured);
 
   const filtered =
     searchValue.trim().length > 0
-      ? ARTICLES.filter(
+      ? articles.filter(
           (a) =>
             a.title.toLowerCase().includes(searchValue.toLowerCase()) ||
             a.category.toLowerCase().includes(searchValue.toLowerCase())
@@ -94,19 +101,26 @@ export default function Index() {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-12 w-48 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
-                  {PROFILE_MENU.map((item, i) => (
+                <div className="absolute right-0 top-12 w-52 bg-white border border-[#E8E4DC] rounded-xl shadow-lg py-1 animate-slide-down z-50">
+                  {PROFILE_MENU.map((item) => (
                     <button
-                      key={item}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-[#F5F3EF] ${
-                        i === PROFILE_MENU.length - 1
-                          ? "text-red-500 hover:text-red-600 mt-1 border-t border-[#F0EDE8]"
-                          : "text-[#1A1A1A]"
-                      }`}
+                      key={item.label}
+                      onClick={() => { setProfileOpen(false); navigate(item.path); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-[#1A1A1A] transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
                     >
-                      {item}
+                      <Icon name={item.icon} size={14} className="text-[#9A9690]" />
+                      {item.label}
                     </button>
                   ))}
+                  <div className="border-t border-[#F0EDE8] mt-1">
+                    <button
+                      onClick={() => setProfileOpen(false)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-500 transition-colors hover:bg-[#F5F3EF] flex items-center gap-3"
+                    >
+                      <Icon name="LogOut" size={14} />
+                      Выйти
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -224,10 +238,10 @@ export default function Index() {
           <div className="animate-fade-in">
             <div className="flex items-baseline gap-3 mb-8">
               <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A]">Все статьи</h2>
-              <span className="text-sm text-[#9A9690]">{ARTICLES.length} материалов</span>
+              <span className="text-sm text-[#9A9690]">{articles.length} материалов</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ARTICLES.map((a, i) => (
+              {articles.map((a, i) => (
                 <ArticleCard key={a.id} article={a} delay={i * 60} onClick={() => goArticle(a.id)} />
               ))}
             </div>

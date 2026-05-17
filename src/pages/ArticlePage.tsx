@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ARTICLES } from "@/data/articles";
+import { useArticles, useBookmarks } from "@/store/articlesStore";
 import Icon from "@/components/ui/icon";
 
 function renderContent(content: string) {
@@ -78,7 +78,10 @@ function CardPlaceholder({ seed }: { seed: number }) {
 export default function ArticlePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const article = ARTICLES.find((a) => a.id === Number(id));
+  const articles = useArticles();
+  const { bookmarks, toggle } = useBookmarks();
+  const article = articles.find((a) => a.id === Number(id));
+  const isBookmarked = article ? bookmarks.includes(article.id) : false;
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -101,7 +104,7 @@ export default function ArticlePage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const related = ARTICLES.filter((a) => a.id !== article?.id).slice(0, 3);
+  const related = articles.filter((a) => a.id !== article?.id).slice(0, 3);
 
   if (!article) {
     return (
@@ -147,11 +150,23 @@ export default function ArticlePage() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors">
-              <Icon name="Bookmark" size={15} />
-              <span className="hidden sm:inline">Сохранить</span>
+            <button
+              onClick={() => toggle(article.id)}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${isBookmarked ? "text-[#1A1A1A]" : "text-[#6A6660] hover:text-[#1A1A1A]"}`}
+            >
+              <Icon name={isBookmarked ? "BookmarkCheck" : "Bookmark"} size={15} />
+              <span className="hidden sm:inline">{isBookmarked ? "Сохранено" : "Сохранить"}</span>
             </button>
-            <button className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors">
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: article.title, url: window.location.href });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+              }}
+              className="flex items-center gap-1.5 text-sm text-[#6A6660] hover:text-[#1A1A1A] transition-colors"
+            >
               <Icon name="Share2" size={15} />
               <span className="hidden sm:inline">Поделиться</span>
             </button>
