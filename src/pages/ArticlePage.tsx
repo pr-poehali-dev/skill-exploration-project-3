@@ -4,6 +4,7 @@ import { useArticles, useBookmarks, deleteArticle } from "@/store/articlesStore"
 import { useAuth, canEditArticle, canDeleteArticle } from "@/store/authStore";
 import type { EditorData } from "@/data/articles";
 import Icon from "@/components/ui/icon";
+import { useSEO } from "@/lib/useSEO";
 
 function renderEditorBlocks(data: EditorData) {
   return data.blocks.map((block, idx) => {
@@ -154,6 +155,19 @@ export default function ArticlePage() {
   const isBookmarked = article ? bookmarks.includes(article.id) : false;
   const canEdit = canEditArticle(user, article?.authorId);
   const canDelete = canDeleteArticle(user, article?.authorId);
+
+  useSEO({
+    title: article?.seo?.title || article?.title,
+    description: article?.seo?.description || article?.excerpt,
+    keywords: article?.seo?.keywords,
+    image: article?.seo?.ogImage,
+    type: "article",
+    noindex: article?.seo?.noindex,
+    canonical: article?.seo?.canonical,
+    author: article?.author,
+    publishedAt: article?.date,
+    section: article?.category,
+  });
 
   const goBack = () => {
     if (window.history.length > 1) {

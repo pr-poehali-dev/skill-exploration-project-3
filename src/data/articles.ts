@@ -10,6 +10,16 @@ export interface EditorData {
   version?: string;
 }
 
+export interface ArticleSEO {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
+  slug?: string;
+  noindex?: boolean;
+  canonical?: string;
+}
+
 export interface Article {
   id: number;
   category: string;
@@ -23,6 +33,7 @@ export interface Article {
   authorId?: number;
   content: string;
   editorData?: EditorData;
+  seo?: ArticleSEO;
 }
 
 export const ARTICLES: Article[] = [

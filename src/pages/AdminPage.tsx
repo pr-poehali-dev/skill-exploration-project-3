@@ -10,11 +10,13 @@ import {
   type Role,
 } from "@/store/authStore";
 import { useArticles, deleteArticle } from "@/store/articlesStore";
+import { useSiteSettings, updateSiteSettings, resetSiteSettings } from "@/store/siteSettingsStore";
 
 const TABS = [
+  { key: "overview", label: "Обзор", icon: "LayoutDashboard" },
   { key: "users", label: "Пользователи", icon: "Users" },
   { key: "articles", label: "Статьи", icon: "FileText" },
-  { key: "overview", label: "Обзор", icon: "LayoutDashboard" },
+  { key: "seo", label: "SEO и сайт", icon: "Search" },
 ];
 
 const ROLES: Role[] = ["user", "editor", "moderator", "admin"];
@@ -31,7 +33,9 @@ export default function AdminPage() {
   const user = useAuth();
   const users = useUsers();
   const articles = useArticles();
-  const [tab, setTab] = useState<"users" | "articles" | "overview">("overview");
+  const [tab, setTab] = useState<"users" | "articles" | "overview" | "seo">("overview");
+  const site = useSiteSettings();
+  const [siteSaved, setSiteSaved] = useState(false);
   const [search, setSearch] = useState("");
 
   const filteredUsers = search
@@ -113,6 +117,12 @@ export default function AdminPage() {
                 description="Просмотр и удаление публикаций"
                 icon="FileText"
                 onClick={() => setTab("articles")}
+              />
+              <ShortcutCard
+                title="SEO и метаданные"
+                description="Title, description, OG-теги для сайта"
+                icon="Search"
+                onClick={() => setTab("seo")}
               />
             </div>
           </div>
@@ -281,7 +291,176 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {tab === "seo" && (
+          <div className="animate-fade-in max-w-2xl">
+            <div className="flex items-baseline justify-between mb-8">
+              <div>
+                <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A]">SEO и сайт</h2>
+                <p className="text-sm text-[#9A9690] mt-1">Глобальные метаданные для всех страниц</p>
+              </div>
+              <button
+                onClick={() => {
+                  if (confirm("Сбросить все настройки сайта к значениям по умолчанию?")) {
+                    resetSiteSettings();
+                  }
+                }}
+                className="text-xs text-[#9A9690] hover:text-red-500 transition-colors"
+              >
+                Сбросить
+              </button>
+            </div>
+
+            <div className="space-y-6 bg-white border border-[#E8E4DC] rounded-2xl p-6">
+              <AdminField
+                label="Название сайта"
+                value={site.siteName}
+                onChange={(v) => { updateSiteSettings({ siteName: v }); flashSaved(setSiteSaved); }}
+              />
+              <AdminField
+                label="Слоган"
+                value={site.tagline}
+                hint="Короткая фраза-описание. Показывается после названия в title главной"
+                onChange={(v) => { updateSiteSettings({ tagline: v }); flashSaved(setSiteSaved); }}
+              />
+              <AdminField
+                label="Описание сайта"
+                value={site.description}
+                hint="Meta-описание для главной. 150–160 символов"
+                textarea
+                max={160}
+                onChange={(v) => { updateSiteSettings({ description: v }); flashSaved(setSiteSaved); }}
+              />
+              <AdminField
+                label="Ключевые слова"
+                value={site.keywords}
+                hint="Через запятую"
+                onChange={(v) => { updateSiteSettings({ keywords: v }); flashSaved(setSiteSaved); }}
+              />
+              <AdminField
+                label="OG-изображение по умолчанию (URL)"
+                value={site.ogImage}
+                hint="Будет использоваться, если у статьи нет своего"
+                onChange={(v) => { updateSiteSettings({ ogImage: v }); flashSaved(setSiteSaved); }}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <AdminField
+                  label="Twitter @handle"
+                  value={site.twitterHandle}
+                  onChange={(v) => { updateSiteSettings({ twitterHandle: v }); flashSaved(setSiteSaved); }}
+                  placeholder="@medium"
+                />
+                <AdminField
+                  label="Язык"
+                  value={site.language}
+                  onChange={(v) => { updateSiteSettings({ language: v }); flashSaved(setSiteSaved); }}
+                  placeholder="ru"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <AdminField
+                  label="Robots"
+                  value={site.robots}
+                  hint="Например: index, follow"
+                  onChange={(v) => { updateSiteSettings({ robots: v }); flashSaved(setSiteSaved); }}
+                />
+                <div>
+                  <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-1.5">
+                    Цвет темы
+                  </label>
+                  <div className="flex items-center gap-3 border-b border-[#E8E4DC] pb-2">
+                    <input
+                      type="color"
+                      value={site.themeColor}
+                      onChange={(e) => { updateSiteSettings({ themeColor: e.target.value }); flashSaved(setSiteSaved); }}
+                      className="w-10 h-7 border border-[#E8E4DC] rounded cursor-pointer"
+                    />
+                    <input
+                      value={site.themeColor}
+                      onChange={(e) => { updateSiteSettings({ themeColor: e.target.value }); flashSaved(setSiteSaved); }}
+                      className="flex-1 text-sm text-[#1A1A1A] bg-transparent outline-none"
+                    />
+                  </div>
+                  <p className="text-[11px] text-[#B8B4AC] mt-1">Цвет адресной строки в мобильных браузерах</p>
+                </div>
+              </div>
+
+              {siteSaved && (
+                <div className="text-xs text-[#3a7c2a] flex items-center gap-2 animate-fade-in">
+                  <Icon name="Check" size={13} />
+                  Сохранено
+                </div>
+              )}
+            </div>
+
+            {/* Preview */}
+            <div className="mt-8">
+              <p className="text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-3">Превью в выдаче</p>
+              <div className="border border-[#E8E4DC] rounded-2xl p-5 bg-white">
+                <p className="text-xs text-[#3a7c2a] mb-1">https://medium.example/</p>
+                <p className="text-[18px] text-[#1a0dab] leading-snug mb-1">
+                  {site.siteName} · {site.tagline}
+                </p>
+                <p className="text-sm text-[#4d5156] line-clamp-3">{site.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
+    </div>
+  );
+}
+
+function flashSaved(setter: (v: boolean) => void) {
+  setter(true);
+  setTimeout(() => setter(false), 1500);
+}
+
+function AdminField({
+  label,
+  value,
+  onChange,
+  hint,
+  placeholder,
+  textarea,
+  max,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+  placeholder?: string;
+  textarea?: boolean;
+  max?: number;
+}) {
+  const overLimit = max ? value.length > max : false;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-1.5">
+        <label className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{label}</label>
+        {max && (
+          <span className={`text-[10px] ${overLimit ? "text-red-400" : "text-[#B8B4AC]"}`}>
+            {value.length} / {max}
+          </span>
+        )}
+      </div>
+      {textarea ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          rows={2}
+          className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC] resize-none leading-relaxed"
+        />
+      ) : (
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC]"
+        />
+      )}
+      {hint && <p className="text-[11px] text-[#B8B4AC] mt-1">{hint}</p>}
     </div>
   );
 }

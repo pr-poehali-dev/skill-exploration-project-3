@@ -5,6 +5,7 @@ import { CATEGORIES, type Article } from "@/data/articles";
 import { useArticles } from "@/store/articlesStore";
 import { useAuth, logoutUser, canCreateArticle, isAdmin, ROLE_LABELS } from "@/store/authStore";
 import { useUnreadCount } from "@/store/messagesStore";
+import { useSEO } from "@/lib/useSEO";
 
 const NAV_ITEMS = ["Главная", "Категории", "Статьи"];
 
@@ -17,6 +18,7 @@ export default function Index() {
   const navigate = useNavigate();
   const user = useAuth();
   const unread = useUnreadCount(user?.id);
+  useSEO({ type: "website" });
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
