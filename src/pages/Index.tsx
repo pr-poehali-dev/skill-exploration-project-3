@@ -57,7 +57,8 @@ export default function Index() {
             </span>
           </a>
 
-          <div className="flex-1 mx-2 relative">
+          <div className="flex-1 flex justify-center mx-2 relative">
+            <div className="w-full max-w-[512px]">
             <div
               className={`flex items-center gap-2 bg-white border rounded-full px-4 py-2 transition-all duration-200 ${
                 searchFocused
@@ -80,6 +81,7 @@ export default function Index() {
                   <Icon name="X" size={13} />
                 </button>
               )}
+            </div>
             </div>
           </div>
 
