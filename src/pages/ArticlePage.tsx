@@ -5,6 +5,7 @@ import { useAuth, canEditArticle, canDeleteArticle } from "@/store/authStore";
 import { useSEO } from "@/lib/useSEO";
 import ArticleHeader from "@/components/article/ArticleHeader";
 import ArticleBody from "@/components/article/ArticleBody";
+import MaxComments from "@/components/article/MaxComments";
 
 export default function ArticlePage() {
   const { id } = useParams<{ id: string }>();
@@ -80,6 +81,7 @@ export default function ArticlePage() {
         goBack={goBack}
       />
       <ArticleBody article={article} related={related} />
+      <MaxComments articleId={article.id} articleTitle={article.title} />
     </div>
   );
 }

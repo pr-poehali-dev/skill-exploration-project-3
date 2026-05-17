@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { useAuth, ROLE_LABELS, canCreateArticle, isAdmin, logoutUser } from "@/store/authStore";
-import { useUnreadCount } from "@/store/messagesStore";
+import { useAuth, useUsers, ROLE_LABELS, canCreateArticle, isAdmin, logoutUser } from "@/store/authStore";
+import { useUnreadCount, useConversations } from "@/store/messagesStore";
 import { useCategories } from "@/store/categoriesStore";
 import { useSidebarCollapsed } from "@/store/sidebarStore";
 
@@ -66,9 +66,12 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useSidebarCollapsed();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(true);
+  const [chatsOpen, setChatsOpen] = useState(true);
   const user = useAuth();
   const unread = useUnreadCount(user?.id);
   const categories = useCategories();
+  const conversations = useConversations(user?.id);
+  const users = useUsers();
 
   // Close mobile drawer when route changes
   useEffect(() => {
@@ -82,6 +85,20 @@ export default function AppSidebar() {
   const isHome = path === "/" && nav === "home";
   const isCats = path === "/" && nav === "categories";
   const isArts = path === "/" && nav === "articles";
+  const activeChatId = path.startsWith("/messages") ? Number(params.get("u")) || null : null;
+
+  const topConversations = conversations.slice(0, 6);
+  const getPartner = (id: number) => users.find((u) => u.id === id);
+  const formatChatTime = (ts: number) => {
+    const d = new Date(ts);
+    const now = new Date();
+    const sameDay =
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear();
+    if (sameDay) return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
+  };
 
   const goHomeWithNav = (n: string) => navigate(`/?nav=${n}`);
   const goCategory = (cat: string) =>
@@ -220,14 +237,94 @@ export default function AppSidebar() {
           <>
             <SectionLabel collapsed={collapsed}>Личное</SectionLabel>
             <div className="space-y-0.5">
-              <NavLink
-                icon="MessageCircle"
-                label="Сообщения"
-                to="/messages"
-                active={path.startsWith("/messages")}
-                collapsed={collapsed}
-                badge={unread}
-              />
+              <div className={collapsed ? "" : "flex items-center gap-0.5"}>
+                <div className="flex-1">
+                  <NavLink
+                    icon="MessageCircle"
+                    label="Сообщения"
+                    to="/messages"
+                    active={path.startsWith("/messages") && !activeChatId}
+                    collapsed={collapsed}
+                    badge={unread}
+                  />
+                </div>
+                {!collapsed && topConversations.length > 0 && (
+                  <button
+                    onClick={() => setChatsOpen((v) => !v)}
+                    className="w-6 h-6 rounded-md hover:bg-[#EDE9E2] flex items-center justify-center text-[#7A7670] shrink-0"
+                    title={chatsOpen ? "Скрыть чаты" : "Показать чаты"}
+                  >
+                    <Icon
+                      name="ChevronDown"
+                      size={13}
+                      className={`transition-transform ${chatsOpen ? "" : "-rotate-90"}`}
+                    />
+                  </button>
+                )}
+              </div>
+
+              {/* Pinned chats list (Telegram-style) */}
+              {!collapsed && chatsOpen && topConversations.length > 0 && (
+                <div className="space-y-0.5 mb-1">
+                  {topConversations.map((c) => {
+                    const partner = getPartner(c.partnerId);
+                    if (!partner) return null;
+                    const active = activeChatId === c.partnerId;
+                    const lastText = c.lastMessage.text
+                      ? c.lastMessage.text
+                      : c.lastMessage.article
+                      ? `📎 ${c.lastMessage.article.title}`
+                      : "...";
+                    return (
+                      <button
+                        key={c.partnerId}
+                        onClick={() => navigate(`/messages?u=${c.partnerId}`)}
+                        title={partner.name}
+                        className={`w-full flex items-center gap-2 pl-7 pr-2 py-1.5 rounded-md text-left transition-colors ${
+                          active ? "bg-[#EDE9E2]" : "hover:bg-[#F0EDE8]"
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-[#E8E4DC] flex items-center justify-center shrink-0 overflow-hidden">
+                          {partner.avatar ? (
+                            <img
+                              src={partner.avatar}
+                              alt={partner.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="font-cormorant font-semibold text-[11px] text-[#4A4A48]">
+                              {partner.name[0].toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <p
+                              className={`text-[13px] truncate ${
+                                active ? "text-[#1A1A1A] font-medium" : "text-[#2A2A28]"
+                              }`}
+                            >
+                              {partner.name}
+                            </p>
+                            <span className="text-[10px] text-[#9A9690] shrink-0">
+                              {formatChatTime(c.lastMessage.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#7A7670] truncate leading-tight">
+                            {lastText}
+                          </p>
+                        </div>
+                        {c.unread > 0 && (
+                          <span className="bg-[#1A1A1A] text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-medium shrink-0">
+                            {c.unread > 9 ? "9+" : c.unread}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               <NavLink
                 icon="Bookmark"
                 label="Закладки"
