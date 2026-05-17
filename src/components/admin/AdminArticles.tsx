@@ -41,8 +41,26 @@ export default function AdminArticles({ articles }: Props) {
               <p className="font-cormorant text-lg font-semibold text-[#1A1A1A] leading-snug line-clamp-1">
                 {a.title}
               </p>
-              <p className="text-xs text-[#9A9690] mt-0.5">
-                {a.author} · {a.date} · {a.readTime}
+              <p className="text-xs text-[#9A9690] mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <span>{a.author}</span>
+                <span>·</span>
+                <span>{a.date}</span>
+                <span>·</span>
+                <span>{a.readTime}</span>
+                <span>·</span>
+                <span className="flex items-center gap-1">
+                  <Icon name="Eye" size={11} />
+                  {a.views || 0}
+                </span>
+                {a.source?.url && (
+                  <>
+                    <span>·</span>
+                    <span className="flex items-center gap-1" title={a.source.url}>
+                      <Icon name="Link" size={11} />
+                      {a.source.title || "источник"}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
             <button

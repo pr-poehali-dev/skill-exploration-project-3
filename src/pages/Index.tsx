@@ -222,10 +222,19 @@ export default function Index() {
                       {featured.title}
                     </h1>
                     <p className="text-[#6A6660] leading-relaxed mb-6 text-[15px]">{featured.excerpt}</p>
-                    <div className="flex items-center gap-4 text-xs text-[#9A9690] mb-6">
+                    <div className="flex items-center gap-4 text-xs text-[#9A9690] mb-6 flex-wrap">
                       <span>{featured.date}</span>
                       <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
                       <span>{featured.readTime} чтения</span>
+                      {(featured.views || 0) > 0 && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
+                          <span className="flex items-center gap-1">
+                            <Icon name="Eye" size={11} />
+                            {formatCardViews(featured.views || 0)}
+                          </span>
+                        </>
+                      )}
                     </div>
                     <button
                       onClick={() => goArticle(featured.id)}
@@ -349,9 +358,25 @@ function ArticleCard({
         <span>{article.date}</span>
         <span className="w-1 h-1 rounded-full bg-[#D8D4CC]" />
         <span>{article.readTime} чтения</span>
+        {(article.views || 0) > 0 && (
+          <>
+            <span className="w-1 h-1 rounded-full bg-[#D8D4CC]" />
+            <span className="flex items-center gap-1" title="Просмотры">
+              <Icon name="Eye" size={11} />
+              {formatCardViews(article.views || 0)}
+            </span>
+          </>
+        )}
       </div>
     </article>
   );
+}
+
+function formatCardViews(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 10000) return `${(n / 1000).toFixed(1).replace(".0", "")}K`;
+  if (n < 1000000) return `${Math.round(n / 1000)}K`;
+  return `${(n / 1000000).toFixed(1).replace(".0", "")}M`;
 }
 
 function FeaturedPlaceholder() {

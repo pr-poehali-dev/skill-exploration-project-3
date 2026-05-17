@@ -6,6 +6,7 @@ interface Stats {
   editors: number;
   moderators: number;
   admins: number;
+  views: number;
 }
 
 interface Props {
@@ -19,11 +20,14 @@ export default function AdminOverview({ stats, onGoUsers, onGoArticles, onGoSeo 
   return (
     <div className="animate-fade-in">
       <h2 className="font-cormorant text-3xl font-semibold text-[#1A1A1A] mb-8">Обзор</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Пользователей" value={stats.users} icon="Users" />
         <StatCard label="Статей" value={stats.articles} icon="FileText" />
+        <StatCard label="Просмотров" value={stats.views} icon="Eye" />
         <StatCard label="Редакторов" value={stats.editors} icon="PenLine" />
-        <StatCard label="Модераторов + админов" value={stats.moderators + stats.admins} icon="Shield" />
+      </div>
+      <div className="mb-12 text-xs text-[#9A9690]">
+        Модераторов: {stats.moderators} · Администраторов: {stats.admins}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

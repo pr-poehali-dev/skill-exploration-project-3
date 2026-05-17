@@ -20,6 +20,11 @@ export interface ArticleSEO {
   canonical?: string;
 }
 
+export interface ArticleSource {
+  url: string;
+  title?: string;
+}
+
 export interface Article {
   id: number;
   category: string;
@@ -34,6 +39,8 @@ export interface Article {
   content: string;
   editorData?: EditorData;
   seo?: ArticleSEO;
+  views?: number;
+  source?: ArticleSource;
 }
 
 export const ARTICLES: Article[] = [

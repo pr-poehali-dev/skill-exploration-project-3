@@ -70,6 +70,35 @@ export function deleteArticle(id: number) {
   window.dispatchEvent(new Event("articles-updated"));
 }
 
+const VIEWED_KEY = "blog_viewed_articles";
+
+function loadViewed(): Record<number, number> {
+  try {
+    const raw = localStorage.getItem(VIEWED_KEY);
+    if (raw) return JSON.parse(raw) as Record<number, number>;
+  } catch (e) {
+    console.warn(e);
+  }
+  return {};
+}
+
+export function incrementArticleViews(id: number) {
+  const viewed = loadViewed();
+  const last = viewed[id] || 0;
+  const now = Date.now();
+  // Throttle: один просмотр от одного браузера не чаще, чем раз в 30 минут
+  if (now - last < 30 * 60 * 1000) return;
+
+  viewed[id] = now;
+  localStorage.setItem(VIEWED_KEY, JSON.stringify(viewed));
+
+  _articles = _articles.map((a) =>
+    a.id === id ? { ...a, views: (a.views || 0) + 1 } : a
+  );
+  saveArticles(_articles);
+  window.dispatchEvent(new Event("articles-updated"));
+}
+
 export function useArticles() {
   const [articles, setArticles] = useState<Article[]>(() => loadArticles());
 

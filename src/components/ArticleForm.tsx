@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import ArticleEditor, { type ArticleEditorHandle } from "@/components/ArticleEditor";
-import { CATEGORIES, type Article, type EditorData, type ArticleSEO } from "@/data/articles";
+import { CATEGORIES, type Article, type EditorData, type ArticleSEO, type ArticleSource } from "@/data/articles";
 import { addArticle, updateArticle } from "@/store/articlesStore";
 import { editorToPlainText, estimateReadTimeFromEditor, markdownToEditor } from "@/lib/editorConvert";
 import { useAuth, ROLE_LABELS } from "@/store/authStore";
@@ -43,6 +43,8 @@ export default function ArticleForm({ mode, article }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [seoOpen, setSeoOpen] = useState(false);
   const [seo, setSeo] = useState<ArticleSEO>(article?.seo ?? {});
+  const [sourceUrl, setSourceUrl] = useState(article?.source?.url ?? "");
+  const [sourceTitle, setSourceTitle] = useState(article?.source?.title ?? "");
 
   const initialData: EditorData =
     article?.editorData ?? (article?.content ? markdownToEditor(article.content) : { blocks: [] });
@@ -78,6 +80,10 @@ export default function ArticleForm({ mode, article }: Props) {
         canonical: seo.canonical?.trim() || undefined,
       };
 
+      const cleanSource: ArticleSource | undefined = sourceUrl.trim()
+        ? { url: sourceUrl.trim(), title: sourceTitle.trim() || undefined }
+        : undefined;
+
       if (mode === "create") {
         const created = addArticle({
           title: title.trim(),
@@ -90,6 +96,7 @@ export default function ArticleForm({ mode, article }: Props) {
           readTime,
           editorData: data,
           seo: cleanSeo,
+          source: cleanSource,
         });
         navigate(`/article/${created.id}`);
       } else if (article) {
@@ -103,6 +110,7 @@ export default function ArticleForm({ mode, article }: Props) {
           readTime,
           editorData: data,
           seo: cleanSeo,
+          source: cleanSource,
         });
         navigate(`/article/${article.id}`);
       }
@@ -220,6 +228,43 @@ export default function ArticleForm({ mode, article }: Props) {
             </div>
             <ArticleEditor ref={editorRef} initialData={initialData} />
             {errors.content && <p className="text-xs text-red-400 mt-2">{errors.content}</p>}
+          </div>
+
+          {/* Source */}
+          <div className="border border-[#E8E4DC] rounded-2xl bg-white p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <Icon name="Link" size={15} className="text-[#1A1A1A]" />
+              <p className="text-sm font-medium text-[#1A1A1A]">Источник</p>
+              <span className="text-xs text-[#B8B4AC]">необязательно</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-1.5">
+                  Название
+                </label>
+                <input
+                  value={sourceTitle}
+                  onChange={(e) => setSourceTitle(e.target.value)}
+                  placeholder="The New York Times"
+                  className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC]"
+                />
+                <p className="text-[11px] text-[#B8B4AC] mt-1">
+                  Если пусто — покажется домен из ссылки
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#7A7670] uppercase tracking-widest mb-1.5">
+                  Ссылка
+                </label>
+                <input
+                  type="url"
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder="https://example.com/article"
+                  className="w-full text-sm text-[#1A1A1A] bg-transparent border-b border-[#E8E4DC] pb-2 outline-none focus:border-[#1A1A1A] transition-colors placeholder:text-[#C8C4BC]"
+                />
+              </div>
+            </div>
           </div>
 
           {/* SEO section */}

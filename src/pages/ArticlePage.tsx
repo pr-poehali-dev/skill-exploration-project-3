@@ -1,10 +1,25 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useArticles, useBookmarks, deleteArticle } from "@/store/articlesStore";
+import { useArticles, useBookmarks, deleteArticle, incrementArticleViews } from "@/store/articlesStore";
 import { useAuth, canEditArticle, canDeleteArticle } from "@/store/authStore";
 import type { EditorData } from "@/data/articles";
 import Icon from "@/components/ui/icon";
 import { useSEO } from "@/lib/useSEO";
+
+function formatViews(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 10000) return `${(n / 1000).toFixed(1).replace(".0", "")}K`;
+  if (n < 1000000) return `${Math.round(n / 1000)}K`;
+  return `${(n / 1000000).toFixed(1).replace(".0", "")}M`;
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 
 function renderEditorBlocks(data: EditorData) {
   return data.blocks.map((block, idx) => {
@@ -190,6 +205,12 @@ export default function ArticlePage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Increment views once per article load (throttled inside store)
+  useEffect(() => {
+    if (article?.id) incrementArticleViews(article.id);
+     
+  }, [article?.id]);
+
   const related = articles.filter((a) => a.id !== article?.id).slice(0, 3);
 
   if (!article) {
@@ -306,12 +327,17 @@ export default function ArticlePage() {
               <p className="text-sm font-medium text-[#1A1A1A]">{article.author}</p>
               <p className="text-xs text-[#9A9690]">{article.authorRole}</p>
             </div>
-            <div className="ml-auto flex items-center gap-4 text-xs text-[#9A9690]">
+            <div className="ml-auto flex items-center gap-3 sm:gap-4 text-xs text-[#9A9690] flex-wrap justify-end">
               <span>{article.date}</span>
               <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
               <span className="flex items-center gap-1">
                 <Icon name="Clock" size={12} />
                 {article.readTime} чтения
+              </span>
+              <span className="w-1 h-1 rounded-full bg-[#C8C4BC]" />
+              <span className="flex items-center gap-1" title="Просмотры">
+                <Icon name="Eye" size={12} />
+                {formatViews(article.views || 0)}
               </span>
             </div>
           </div>
@@ -325,11 +351,40 @@ export default function ArticlePage() {
         </div>
 
         {/* Article body */}
-        <div className="max-w-2xl mx-auto px-6 pb-16">
+        <div className="max-w-2xl mx-auto px-6 pb-10">
           {article.editorData?.blocks?.length
             ? renderEditorBlocks(article.editorData)
             : renderContent(article.content)}
         </div>
+
+        {/* Source */}
+        {article.source?.url && (
+          <div className="max-w-2xl mx-auto px-6 pb-12">
+            <a
+              href={article.source.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-[#E8E4DC] hover:border-[#1A1A1A] transition-colors group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#F5F3EF] flex items-center justify-center shrink-0 group-hover:bg-[#1A1A1A] transition-colors">
+                <Icon
+                  name="ExternalLink"
+                  size={15}
+                  className="text-[#4A4A48] group-hover:text-white transition-colors"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-medium text-[#7A7670] uppercase tracking-widest mb-0.5">
+                  Источник
+                </p>
+                <p className="text-sm font-medium text-[#1A1A1A] truncate">
+                  {article.source.title || getDomain(article.source.url)}
+                </p>
+                <p className="text-xs text-[#9A9690] truncate">{article.source.url}</p>
+              </div>
+            </a>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="max-w-2xl mx-auto px-6">

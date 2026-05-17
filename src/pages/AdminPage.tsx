@@ -40,6 +40,7 @@ export default function AdminPage() {
     editors: users.filter((u) => u.role === "editor").length,
     moderators: users.filter((u) => u.role === "moderator").length,
     admins: users.filter((u) => u.role === "admin").length,
+    views: articles.reduce((sum, a) => sum + (a.views || 0), 0),
   };
 
   return (
