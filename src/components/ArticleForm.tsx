@@ -144,7 +144,7 @@ export default function ArticleForm({ mode, article }: Props) {
 
       <main className="max-w-3xl mx-auto px-6 py-12 animate-fade-in">
         <div className="space-y-8">
-          <PosterField cover={cover} setCover={setCover} />
+          <PosterField cover={cover} setCover={setCover} title={title} excerpt={excerpt} category={category} />
 
           <ArticleMetaFields
             categories={CATEGORIES}
