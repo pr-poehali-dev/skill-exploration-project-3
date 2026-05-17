@@ -19,35 +19,52 @@ export function ArticleCard({
 }) {
   return (
     <article
-      className="group cursor-pointer animate-fade-in"
+      className="group cursor-pointer animate-fade-in relative rounded-2xl overflow-hidden aspect-[4/5] bg-[#F0EDE8] shadow-sm hover:shadow-xl transition-shadow"
       style={{ animationDelay: `${delay}ms` }}
       onClick={onClick}
     >
-      <div className="rounded-xl aspect-video mb-4 overflow-hidden transition-transform group-hover:scale-[1.02] bg-[#F0EDE8]">
+      <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.05]">
         {article.cover ? (
-          <img src={article.cover} alt={article.title} className="w-full h-full object-cover" loading="lazy" />
+          <img
+            src={article.cover}
+            alt={article.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         ) : (
           <CardPlaceholder seed={article.id} />
         )}
       </div>
-      <span className="text-xs font-medium text-[#7A7670] uppercase tracking-widest">{article.category}</span>
-      <h3 className="font-cormorant text-xl font-semibold text-[#1A1A1A] leading-snug mt-1.5 mb-2 group-hover:text-[#4A4A48] transition-colors line-clamp-2">
-        {article.title}
-      </h3>
-      <p className="text-sm text-[#7A7670] leading-relaxed mb-3 line-clamp-2">{article.excerpt}</p>
-      <div className="flex items-center gap-3 text-xs text-[#B8B4AC]">
-        <span>{article.date}</span>
-        <span className="w-1 h-1 rounded-full bg-[#D8D4CC]" />
-        <span>{article.readTime} чтения</span>
-        {(article.views || 0) > 0 && (
-          <>
-            <span className="w-1 h-1 rounded-full bg-[#D8D4CC]" />
-            <span className="flex items-center gap-1" title="Просмотры">
-              <Icon name="Eye" size={11} />
-              {formatCardViews(article.views || 0)}
-            </span>
-          </>
-        )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
+
+      <div className="absolute inset-0 p-5 flex flex-col justify-end text-white">
+        <span className="self-start text-[10px] font-medium uppercase tracking-widest mb-3 border border-white/40 bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-full">
+          {article.category}
+        </span>
+        <h3 className="font-cormorant text-xl font-semibold leading-snug mb-2 line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+          {article.title}
+        </h3>
+        <p className="text-sm text-white/85 leading-relaxed mb-3 line-clamp-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
+          {article.excerpt}
+        </p>
+        <div className="flex items-center gap-2.5 text-[11px] text-white/80 flex-wrap">
+          <span>{article.date}</span>
+          <span className="w-1 h-1 rounded-full bg-white/50" />
+          <span className="flex items-center gap-1">
+            <Icon name="Clock" size={11} />
+            {article.readTime}
+          </span>
+          {(article.views || 0) > 0 && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-white/50" />
+              <span className="flex items-center gap-1" title="Просмотры">
+                <Icon name="Eye" size={11} />
+                {formatCardViews(article.views || 0)}
+              </span>
+            </>
+          )}
+        </div>
       </div>
     </article>
   );
