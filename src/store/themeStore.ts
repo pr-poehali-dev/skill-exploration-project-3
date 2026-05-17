@@ -92,12 +92,33 @@ export const DEFAULT_THEME: ThemeSettings = {
   radius: 16,
 };
 
-const KEY = "blog_theme";
+const GUEST_KEY = "blog_theme";
+const USER_KEY_PREFIX = "blog_theme_user_";
+const SESSION_KEY = "blog_session";
+
+function getCurrentUserId(): number | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw) as { id?: number };
+    return session.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function storageKey(): string {
+  const uid = getCurrentUserId();
+  return uid ? `${USER_KEY_PREFIX}${uid}` : GUEST_KEY;
+}
 
 function load(): ThemeSettings {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey());
     if (raw) return { ...DEFAULT_THEME, ...(JSON.parse(raw) as Partial<ThemeSettings>) };
+    // Fallback to guest theme for first-time logged users
+    const guestRaw = localStorage.getItem(GUEST_KEY);
+    if (guestRaw) return { ...DEFAULT_THEME, ...(JSON.parse(guestRaw) as Partial<ThemeSettings>) };
   } catch (e) {
     console.warn(e);
   }
@@ -105,7 +126,7 @@ function load(): ThemeSettings {
 }
 
 function persist(t: ThemeSettings) {
-  localStorage.setItem(KEY, JSON.stringify(t));
+  localStorage.setItem(storageKey(), JSON.stringify(t));
   window.dispatchEvent(new Event("theme-updated"));
 }
 
@@ -125,6 +146,17 @@ export function resetTheme() {
   _theme = { ...DEFAULT_THEME };
   persist(_theme);
   applyTheme(_theme);
+}
+
+// Re-load theme when current user changes (login/logout/role switch)
+export function reloadThemeForCurrentUser() {
+  _theme = load();
+  applyTheme(_theme);
+  window.dispatchEvent(new Event("theme-updated"));
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("auth-changed", reloadThemeForCurrentUser);
 }
 
 function loadFont(font: FontOption) {
