@@ -60,8 +60,14 @@ export default function Index() {
   };
   const handleSetActiveCategory = (cat: string | null) => {
     const params = new URLSearchParams();
-    params.set("nav", "articles");
-    if (cat) params.set("category", cat);
+    // Если выбрана категория — переходим на «Статьи» с фильтром.
+    // Если сбрасываем категорию — остаёмся в текущем разделе (например, «Категории»).
+    if (cat) {
+      params.set("nav", "articles");
+      params.set("category", cat);
+    } else {
+      params.set("nav", labelToNavParam[activeNav] || "home");
+    }
     setSearchParams(params, { replace: false });
   };
 

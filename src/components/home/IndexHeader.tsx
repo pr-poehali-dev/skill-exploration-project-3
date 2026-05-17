@@ -51,7 +51,7 @@ export default function IndexHeader({
     <header className="sticky top-0 z-40 bg-[#FAFAF8]/95 backdrop-blur-sm border-b border-[#E8E4DC]">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-4">
         <button
-          onClick={() => { setActiveNav("Главная"); setActiveCategory(null); setSearchValue(""); navigate("/"); }}
+          onClick={() => { setSearchValue(""); navigate("/?nav=home"); }}
           className="flex items-center gap-2 shrink-0 group"
         >
           <div className="w-8 h-8 bg-[#1A1A1A] rounded-sm flex items-center justify-center transition-transform group-hover:scale-105">
